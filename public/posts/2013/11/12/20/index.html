@@ -1,0 +1,260 @@
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <base href="http://rejasupotaro.github.io">
+    <title> development, staging, production... </title>
+    <link rel="canonical" href="http://rejasupotaro.github.io/posts/2013/11/12/20/">
+    
+
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/poole.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/syntax.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/lanyon.css">
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+</head>
+
+
+<body class="theme-base-08">
+  
+
+
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+
+<div class="sidebar" id="sidebar">
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/">Home</a>
+
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/posts">Blog</a>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2014 Spencer Lyon. Powered by <a href="http://hugo.spf13.com">Hugo</a>. Design adapted from <a href="http://lanyon.getpoole.com">Lanyon</a>.
+    </p>
+  </div>
+</div>
+
+
+  
+  <div class="wrap">
+    <div class="masthead">
+      <div class="container">
+        <h3 class="masthead-title">
+          <a href="http://rejasupotaro.github.io/posts" title="Blog">Blog Posts</a>
+        </h3>
+      </div>
+    </div>
+
+    
+    <div class="container content">
+      <h1 class="post-title">development, staging, production...</h1>
+        <section id="main">
+          <h5 id="date"> Tue Nov 12, 2013 </h5>
+          
+
+<h1 id="環境による設定の切り替えについて:eae282e3e4b12108386442085f9d1a62">環境による設定の切り替えについて</h1>
+
+<h2 id="ウェブアプリケーション開発:eae282e3e4b12108386442085f9d1a62">ウェブアプリケーション開発</h2>
+
+<ul>
+<li>development (開発者の手元のPCだったりVMだったり)</li>
+<li>staging (本番環境と同等の環境)</li>
+<li>production (本番環境)</li>
+</ul>
+
+<h2 id="スマートフォンアプリ開発:eae282e3e4b12108386442085f9d1a62">スマートフォンアプリ開発</h2>
+
+<ul>
+<li>development (手元でデバッグする用)</li>
+<li>beta (社内β配信用)</li>
+<li>release (Google Playにアップロードする用)</li>
+</ul>
+
+<h1 id="androidでの環境の切り替え:eae282e3e4b12108386442085f9d1a62">Androidでの環境の切り替え</h1>
+
+<ul>
+<li>要件
+
+<ul>
+<li>APIのエンドポイントをステージングと本番環境で自動で切り替えたい</li>
+</ul></li>
+<li>前提条件
+
+<ul>
+<li>ビルドツールはGradleを使っている</li>
+</ul></li>
+<li>解決方法
+
+<ul>
+<li>buildConfigに定数を定義する(buildConfigプロパティに渡したStringが直接Generateされます)</li>
+</ul></li>
+</ul>
+
+<pre><code class="language-java">// build.gradle
+buildTypes {
+    debug {
+        buildConfig &quot;public static final boolean STAGING = true;&quot;
+        debuggable true
+        runProguard false
+    }
+    ...
+</code></pre>
+
+<pre><code class="language-java">/** Automatically generated file. DO NOT MODIFY */
+package com.cookpad.android.activities;
+
+public final class BuildConfig {
+    public static final boolean DEBUG = Boolean.parseBoolean(&quot;true&quot;);
+
+    // lines from build type: debug
+    public static final boolean STAGING = true;
+}
+</code></pre>
+
+<pre><code class="language-java">public class MyApiClient {
+    public static final String endpoint = BuildConfig.STAGING ? &quot;my.staging.server&quot; : &quot;my.service&quot;;
+    ...
+}
+</code></pre>
+
+<p><strong>!!!簡単!!!</strong></p>
+
+<p>もうちょっとだけ続きます。</p>
+
+<h1 id="実際のビルド環境:eae282e3e4b12108386442085f9d1a62">実際のビルド環境</h1>
+
+<ul>
+<li><strong>development (ローカルPCでのビルド、デバッグ用、ステージングを向いてる、ログを出力する、ProGuardは無効、DeployGateは有効、Crashlyticsは無効…)</strong></li>
+<li><strong>beta (Jenkinsでのビルド、社内β配信用、本番環境を向いてる、ログは出力する、ProGuardは有効、DeployGateは有効、Crashlyticsは無効…)</strong></li>
+<li><strong>release (Jenkinsでビルド、Google Playにアップロードする用、本番環境を向いている、ProGuardは有効、DeployGateは無効、Crashlyticsは有効…)</strong></li>
+</ul>
+
+<p>API、課金周り、その他もろもろで設定項目が多い場合に <code>buildConfig</code> を使うとファイルが三項演算子だらけになって読みにくくなるので、弊社では <code>buildTypes</code> と <code>productFlavors</code> の設定で環境を切り替えています。</p>
+
+<pre><code>// build.gradle
+buildTypes {
+    debug {
+        debuggable true
+        runProguard false
+    }
+    beta {
+        signingConfig signingConfigs.cookpadConfig
+        debuggable true
+        runProguard true
+        proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
+        proguardFile file('proguard-project-common.txt')
+        proguardFile file('proguard-project-beta.txt')
+    }
+    release {
+        signingConfig signingConfigs.cookpadConfig
+        debuggable false
+        runProguard true
+        proguardFile getDefaultProguardFile('proguard-android-optimize.txt')
+        proguardFile file('proguard-project-common.txt')
+        proguardFile file('proguard-project-release.txt')
+    }
+}
+
+productFlavors {
+    staging {}
+    product {}
+}
+</code></pre>
+
+<p><img src="https://dl.dropboxusercontent.com/u/54255753/blog/201311/directory_structure.png" alt="" />
+</p>
+
+<p>これにOSバージョンが加わると…</p>
+
+<p><img src="https://dl.dropboxusercontent.com/u/54255753/blog/201311/build_matrix.png" alt="" />
+</p>
+
+<pre><code>buildTypes * productFlavors * OS version * 解像度 = ビルド時間∞
+</code></pre>
+
+<p>Jenkinsでビルドが40分超え…</p>
+
+<p>{% oembed <a href="https://twitter.com/rejasupotaro/status/397977669062500352">https://twitter.com/rejasupotaro/status/397977669062500352</a> %}</p>
+
+<p>設定を見なおして現在24分。(まだ長い)</p>
+
+<p>AndroidのテストはGradleで並列化できない。<a href="http://www.infoq.com/jp/news/2013/11/google-espresso-testing">Espressoで並列化</a>？Robolectric使う？(次回以降のポテトチップスで……)</p>
+
+<h2 id="まとめ:eae282e3e4b12108386442085f9d1a62">まとめ</h2>
+
+<p><strong>buildConfigに書いたStringはそのままソースになります</strong></p>
+
+        </section>
+    </div>
+  </div>
+
+  <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+  
+
+<div class="container">
+  <hr />
+  <hr />
+  
+    <span class="left">
+    &nbsp; <em>&laquo; Previous:</em> <a class="next" href="http://rejasupotaro.github.io/posts/2013/12/05/23/">ActiveAndroidの初期化時間を4分の1にする</a>
+    </span>
+  
+
+  
+    <span class="right">
+    <em>Next: </em><a class="next" href="http://rejasupotaro.github.io/posts/2013/11/10/18/"> &nbsp; Dependencyを確認する/キャッシュを削除する</a> &raquo;
+    </span>
+  
+</div>
+
+  <br />
+  
+<div class="container">
+  <ul class="catlist">
+    <li><em>Categories: </em></li>
+    
+  </ul>
+</div>
+
+
+
+  
+  
+
+<div class="container content">
+<footer>
+  <div>
+    <p class="right credit">
+    Fancy footer here. Link to <a href="http://rejasupotaro.github.io/">Home Page</a>
+    </p>
+  </div>
+</footer>
+</div>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-36732392-2', 'sglyon.com');
+  ga('send', 'pageview');
+
+</script>
+
+
+</body>
+</html>
+
+
+
+

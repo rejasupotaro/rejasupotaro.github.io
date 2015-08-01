@@ -1,0 +1,307 @@
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <base href="http://rejasupotaro.github.io">
+    <title> AndroidのCIに纏わる諸々の問題 </title>
+    <link rel="canonical" href="http://rejasupotaro.github.io/posts/2013/12/14/26/">
+    
+
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/poole.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/syntax.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/lanyon.css">
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+</head>
+
+
+<body class="theme-base-08">
+  
+
+
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+
+<div class="sidebar" id="sidebar">
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/">Home</a>
+
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/posts">Blog</a>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2014 Spencer Lyon. Powered by <a href="http://hugo.spf13.com">Hugo</a>. Design adapted from <a href="http://lanyon.getpoole.com">Lanyon</a>.
+    </p>
+  </div>
+</div>
+
+
+  
+  <div class="wrap">
+    <div class="masthead">
+      <div class="container">
+        <h3 class="masthead-title">
+          <a href="http://rejasupotaro.github.io/posts" title="Blog">Blog Posts</a>
+        </h3>
+      </div>
+    </div>
+
+    
+    <div class="container content">
+      <h1 class="post-title">AndroidのCIに纏わる諸々の問題</h1>
+        <section id="main">
+          <h5 id="date"> Sat Dec 14, 2013 </h5>
+          
+
+<p>この投稿は<a href="http://qiita.com/advent-calendar/2013/android">Android Advent Calendar 2013</a>の14日目の記事です。</p>
+
+<p>昨日、<a href="http://www.zusaar.com/event/1917003">Android Test Casual Talks #1</a>というイベントがありました。
+僕もテストについて<a href="http://rejasupotaro.github.io/blog/2013/12/14/25/">何か話す</a>予定だったのですが、残念ながら体調不良のため行けませんでした。
+それで、ハッシュタグを追って見ていたのですが、現場に入ったときにAndroidにテストを書く文化がなくて驚いたという話がありましたが、今やその状況もだいぶ変わってきていて、会場にいた人の80%の人がJenkinsを導入しているというのはちょっとすごいなと思いました。</p>
+
+<p>さて、そんなJenkinsですが、弊社では運用についていくつかの悩みを抱えています。
+その悩みと考えている解決策を公開することによって、意見交換したり、何かの参考になればいいなと思います。</p>
+
+<h1 id="jenkins-ビルドの設定:1fd210ca6cdfcabc688bd15ea0db40b5">Jenkins、ビルドの設定</h1>
+
+<p>弊社のAndroidのJenkinsはawsで<a href="http://mrkn.hatenablog.com/entry/2013/07/26/172040">ここ</a>の1スレーブとして動いています。</p>
+
+<p>ビルドにはgradleを使っていて、以下の設定で種類ごとにbuildを行なっています。</p>
+
+<pre><code class="language-groovy">buildTypes {
+    debug {
+        debuggable true
+        runProguard false
+        ...
+    }
+    beta {
+        debuggable true
+        runProguard true
+        ...
+    }
+    release {
+        debuggable false
+        runProguard true
+        ...
+    }
+}
+
+productFlavors {
+    staging {}
+    product {}
+}
+</code></pre>
+
+<p>また、gradleはdaemon起動しています。
+ライブラリはs3に認証付きでホストしています。署名の情報もそうですが、キーとシークレットはリポジトリに含められないので、Google Driveに置いて開発者に権限を付与してスクリプトで取得するようにしています。</p>
+
+<pre><code class="language-groovy">repositories {
+    mavenCentral()
+    maven {
+        url &quot;https://${project.s3Bucket}.s3.amazonaws.com/release&quot;
+        credentials {
+            username project.s3Key
+            password project.s3Secret
+        }
+    }
+}
+</code></pre>
+
+<p>実際のジョブの内容は</p>
+
+<ol>
+<li>StagingBetaをassembleする</li>
+<li>StagingBetaをconnectedInstrumentTestする</li>
+<li>Lintを走らせる</li>
+<li>ProductBetaをassembleする</li>
+<li>DeployGateでProductBetaを配信する</li>
+<li>HipChatにビルド結果を通知する</li>
+</ol>
+
+<p>というようになっています。</p>
+
+<h1 id="悩み1-android-emulatorが不安定:1fd210ca6cdfcabc688bd15ea0db40b5">悩み1. Android Emulatorが不安定</h1>
+
+<p>プロセスが突然クラッシュして、続くビルドでemulatorがタイムアウトしてしまうことがあります。</p>
+
+<pre><code>Tests on Full Android on x86 Emulator - 2.3.7 failed: Instrumentation run failed due to 'Process crashed.'
+</code></pre>
+
+<pre><code>[android] Timed-out after waiting 180 seconds for emulator
+Finished: NOT_BUILT
+</code></pre>
+
+<p>テストが悪くて起こることもあるのですが、確率的になることもあり原因がよく分かっていません。
+また、こちらも原因不明なのですが <code>adb -s localhost:47245 shell input keyevent 82</code> のメッセージを出したまま永遠に返ってこなくなることもあります。
+この前は8時間固まっていてジョブが詰まっていました（その後Build-timeout Pluginでタイムアウト設定をするようにしました）。</p>
+
+<h1 id="悩み2-ビルドに時間がかかる:1fd210ca6cdfcabc688bd15ea0db40b5">悩み2. ビルドに時間がかかる</h1>
+
+<p>確か最初の頃は一回3分とかで終わっていたと思うのですが、プロジェクトが進んでテストもだんだん増えていって6分くらいになりました。
+Jenkinsではandroid-18（4.3）で、手元ではGenymotionの4.3で動作確認をしていたのですが、ある日Android 2系でアプリを起動するとcompatのコードがinjection周りでクラッシュすることに気付きました。
+開発するときに手元で2系と4系の両方で確認するのは大変なので、Jenkinsでマトリックスビルドするようにしました。</p>
+
+<p><img src="https://dl.dropboxusercontent.com/u/54255753/blog/201311/build_matrix.png" alt="" />
+</p>
+
+<p>android-10 &amp;&amp; armeabi + android-18 &amp;&amp; armeabi-v7a という構成です。
+ところがこの構成にした途端に、ビルド時間が40分を超えるようになりました。</p>
+
+<p>{% oembed <a href="https://twitter.com/rejasupotaro/status/397977669062500352">https://twitter.com/rejasupotaro/status/397977669062500352</a> %}</p>
+
+<p>そこで構成を android-10 &amp;&amp; x86 + android-18 &amp;&amp; x86 に変更しました。</p>
+
+<p><img src="https://dl.dropboxusercontent.com/u/54255753/blog/201312/matrix.png" alt="" />
+</p>
+
+<p>それで今36分くらいです。
+どちらにせよ長すぎるのでなんとかしたいです。</p>
+
+<h1 id="ビルドを安定させる案:1fd210ca6cdfcabc688bd15ea0db40b5">ビルドを安定させる案</h1>
+
+<p>Android Emulator Plugin以外のもの使う場合を考えます。</p>
+
+<h2 id="robolectricを使う:1fd210ca6cdfcabc688bd15ea0db40b5">Robolectricを使う</h2>
+
+<p>実行環境がDalvikじゃないので信頼できるのかというところですが、楽天では4ヶ月使ってみてRobolectric由来の問題にあたったことがないとのことです。
+この手の問題ですが、たとえばDexFileを弄るとか、Androidの環境に依存するようなコードは、ActiveAndroidのようにRobolectricのためのフォールバックの処理を入れる必要があります。</p>
+
+<pre><code class="language-java">if (sourcePath != null &amp;&amp; !(new File(sourcePath).isDirectory())) {
+    DexFile dexfile = new DexFile(sourcePath);
+    Enumeration&lt;String&gt; entries = dexfile.entries();
+
+    while (entries.hasMoreElements()) {
+        paths.add(entries.nextElement());
+    }
+}
+// Robolectric fallback
+else {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    Enumeration&lt;URL&gt; resources = classLoader.getResources(&quot;&quot;);
+
+    while (resources.hasMoreElements()) {
+        String path = resources.nextElement().getFile();
+        if (path.contains(&quot;bin&quot;) || path.contains(&quot;classes&quot;)) {
+            paths.add(path);
+        }
+    }
+}
+</code></pre>
+
+<p>すべてのライブラリがRobolectric対応しているとも限りませんし、うまく動かなかったら自分で直そうという雰囲気を感じます。</p>
+
+<p>UIのテストをすることになったら実機かEmulatorが必要になるので、Robolectricを使うというのはビルドの安定化というより高速化の方かもしれないと思いました。</p>
+
+<h2 id="genymotionを使う:1fd210ca6cdfcabc688bd15ea0db40b5">Genymotionを使う</h2>
+
+<p>Genymotionの開発元が<a href="http://blog.genymobile.com/genymotion-jenkins-android-testing/">今のところヘッドレスでは動かない</a>と言ってます。</p>
+
+<p>ところで弊社のiOS開発はどうしているかというと、社内のmac miniでXcode 5からの新機能のBotsを使ってCIしています。
+なので、Genymotionを使うならawsからmac miniに移す感じになるかなと思います。</p>
+
+<h2 id="実機を使う:1fd210ca6cdfcabc688bd15ea0db40b5">実機を使う</h2>
+
+<p>Genymotionを使うのとほぼ一緒です。
+mac miniに直接実機を繋ぎます。</p>
+
+<p><img src="http://square.github.io/spoon/static/device_cluster.png" width="360px"></p>
+
+<p>ついでに会社の使ってない検証機を繋いでおいて常時テストが走るみたいにしておくと便利かもしれません。</p>
+
+<h1 id="ジョブの実行時間の短縮させる案:1fd210ca6cdfcabc688bd15ea0db40b5">ジョブの実行時間の短縮させる案</h1>
+
+<h2 id="ジョブを分割する:1fd210ca6cdfcabc688bd15ea0db40b5">ジョブを分割する</h2>
+
+<p>2つのジョブを続けて実行するのに比べるとマトリックスビルドは明らかにオーバーヘッドが大きい（6分 * 2で12分のはずが35分かかってる）ので、マトリックスビルドをやめて環境ごとにジョブを増やします。
+ジョブを二重で管理しないといけなくなるという問題が発生しますが、スクリプトはgitで取ってきたり、ジョブ間の設定の差分を見れるようにするなどすればいいかなと思います。</p>
+
+<h2 id="ビルドを速くする:1fd210ca6cdfcabc688bd15ea0db40b5">ビルドを速くする</h2>
+
+<p><a href="http://www.infoq.com/jp/news/2013/05/Facebook-buck-xctool-build">FacebookのBuckとxctool</a> によると、Buckはmavenの10倍ビルドが速いらしいので、たとえばBuckに移行するとか（今のところ考えていませんが）、あるいはGradleがもっと速くなるように<a href="https://github.com/gradle/gradle/pulls">コミットする</a>とかです。</p>
+
+<p>ただし、全体の実行時間のうちビルド時間が占める割合は小さいので、エミュレータの起動と接続、あるいはテストの高速化にリソースを割いた方が大きな成果が得られると思います。</p>
+
+<h2 id="テストを速くする:1fd210ca6cdfcabc688bd15ea0db40b5">テストを速くする</h2>
+
+<p>性能の高いインスタンスに乗り換える、Robolectricを使う、Genymotionを使うなどの方法があります。
+そういえばEspressoってUIテストを並列化しているそうですね：<a href="http://www.infoq.com/jp/news/2013/11/google-espresso-testing">Google Espresso: Android UI のクラウド型高速自動化テスト</a>
+ビジネスロジックはRobolectricでUIはEspressoで、みたいになるのでしょうか。</p>
+
+<h1 id="まとめ:1fd210ca6cdfcabc688bd15ea0db40b5">まとめ</h1>
+
+<p>弊社のCIの悩みと今考えている解決策を書きました。
+安定化に関しても高速化に関してもGenymotionを入れるとひとまず解決する気がするので、awsにいたJenkinsをmac miniに移そうかと思います。</p>
+
+        </section>
+    </div>
+  </div>
+
+  <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+  
+
+<div class="container">
+  <hr />
+  <hr />
+  
+    <span class="left">
+    &nbsp; <em>&laquo; Previous:</em> <a class="next" href="http://rejasupotaro.github.io/posts/2014/04/30/45/">Android StudioでのLombokの導入手順と対応状況</a>
+    </span>
+  
+
+  
+    <span class="right">
+    <em>Next: </em><a class="next" href="http://rejasupotaro.github.io/posts/2013/12/05/23/"> &nbsp; ActiveAndroidの初期化時間を4分の1にする</a> &raquo;
+    </span>
+  
+</div>
+
+  <br />
+  
+<div class="container">
+  <ul class="catlist">
+    <li><em>Categories: </em></li>
+    
+  </ul>
+</div>
+
+
+
+  
+  
+
+<div class="container content">
+<footer>
+  <div>
+    <p class="right credit">
+    Fancy footer here. Link to <a href="http://rejasupotaro.github.io/">Home Page</a>
+    </p>
+  </div>
+</footer>
+</div>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-36732392-2', 'sglyon.com');
+  ga('send', 'pageview');
+
+</script>
+
+
+</body>
+</html>
+
+
+
+

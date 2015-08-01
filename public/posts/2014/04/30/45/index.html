@@ -1,0 +1,360 @@
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <base href="http://rejasupotaro.github.io">
+    <title> Android StudioでのLombokの導入手順と対応状況 </title>
+    <link rel="canonical" href="http://rejasupotaro.github.io/posts/2014/04/30/45/">
+    
+
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/poole.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/syntax.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/lanyon.css">
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+</head>
+
+
+<body class="theme-base-08">
+  
+
+
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+
+<div class="sidebar" id="sidebar">
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/">Home</a>
+
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/posts">Blog</a>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2014 Spencer Lyon. Powered by <a href="http://hugo.spf13.com">Hugo</a>. Design adapted from <a href="http://lanyon.getpoole.com">Lanyon</a>.
+    </p>
+  </div>
+</div>
+
+
+  
+  <div class="wrap">
+    <div class="masthead">
+      <div class="container">
+        <h3 class="masthead-title">
+          <a href="http://rejasupotaro.github.io/posts" title="Blog">Blog Posts</a>
+        </h3>
+      </div>
+    </div>
+
+    
+    <div class="container content">
+      <h1 class="post-title">Android StudioでのLombokの導入手順と対応状況</h1>
+        <section id="main">
+          <h5 id="date"> Wed Apr 30, 2014 </h5>
+          
+
+<h1 id="lombokとは:612c57d5978407866131a3d9de00f820">Lombokとは</h1>
+
+<p><em>Very spicy additions to the Java programming language.</em> <a href="https://github.com/rzwitserloot/lombok">★</a></p>
+
+<p><img src="http://blog-imgs-26.fc2.com/s/2/9/s29fan/tg07P3041222a.jpg" alt="" />
+</p>
+
+<p>ビルド時にAST変換をしてメソッドを生やしたり後処理を追加したり、便利なコードを自動生成する（ソースコードを書き出すのではなく生成されるバイナリを書き換える）ライブラリです。</p>
+
+<h1 id="導入手順:612c57d5978407866131a3d9de00f820">導入手順</h1>
+
+<h3 id="1-build-gradleのdependenciesに追加します:612c57d5978407866131a3d9de00f820">1. build.gradleのdependenciesに追加します</h3>
+
+<pre><code class="language-groovy">provided 'org.projectlombok:lombok:1.12.2'
+</code></pre>
+
+<h3 id="2-preferences-plugins-browse-repositories-lombok-plugin-をインストールします:612c57d5978407866131a3d9de00f820">2. Preferences &gt; Plugins &gt; Browse Repositories &gt; Lombok Plugin をインストールします</h3>
+
+<p>プラグインがなくてもビルドはできますが、入れないと警告が出たり定義にジャンプしたりできないので入れます。</p>
+
+<p><img src="https://dl.dropboxusercontent.com/u/54255753/blog/201404/lombok_intellij_plugin.png" width="480"></p>
+
+<h1 id="androidアプリ開発で使えそうなもの-行数は目安です:612c57d5978407866131a3d9de00f820">Androidアプリ開発で使えそうなもの（行数は目安です）</h1>
+
+<h2 id="data:612c57d5978407866131a3d9de00f820">@Data</h2>
+
+<p>Getter、Setter、ConstructorおよびtoString、equals、hashCodeの自動生成を行う</p>
+
+<h3 id="ビルド前-5行:612c57d5978407866131a3d9de00f820">ビルド前（5行）</h3>
+
+<pre><code class="language-java">@Data
+public class DataExample {
+    private final String name;
+    @Setter(AccessLevel.PACKAGE) private int age;
+}
+</code></pre>
+
+<h3 id="ビルド後-45行:612c57d5978407866131a3d9de00f820">ビルド後（45行）</h3>
+
+<pre><code class="language-java">public class DataExample {
+    private final String name;
+    private int age;
+
+    public DataExample(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    void setAge(int age) {
+        this.age = age;
+    }
+
+    public int getAge() {
+        return this.age;
+    }
+
+    @Override
+    public String toString() {
+        return &quot;DataExample(&quot; + this.getName() + &quot;, &quot; + this.getAge() + &quot;)&quot;;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (!(o instanceof DataExample)) return false;
+        DataExample other = (DataExample) o;
+        if (!other.canEqual((Object)this)) return false;
+        if (this.getName() == null ? other.getName() != null : !this.getName().equals(other.getName())) return false;
+        if (this.getAge() != other.getAge()) return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int PRIME = 59;
+        int result = 1;
+        result = (result*PRIME) + (this.getName() == null ? 0 : this.getName().hashCode());
+        result = (result*PRIME) + this.getAge();
+        return result;
+    }
+}
+</code></pre>
+
+<h2 id="builder:612c57d5978407866131a3d9de00f820">@Builder</h2>
+
+<p>Builderクラスの自動生成を行う。</p>
+
+<h3 id="ビルド前-5行-1:612c57d5978407866131a3d9de00f820">ビルド前（5行）</h3>
+
+<pre><code class="language-java">@Builder
+public class BuilderExample {
+    private String name;
+    private int age;
+}
+</code></pre>
+
+<h3 id="ビルド後-39行:612c57d5978407866131a3d9de00f820">ビルド後（39行）</h3>
+
+<pre><code class="language-java">public class BuilderExample {
+    private String name;
+    private int age;
+
+    BuilderExample(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public static BuilderExampleBuilder builder() {
+        return new BuilderExampleBuilder();
+    }
+
+    public static class BuilderExampleBuilder {
+        private String name;
+        private int age;
+
+        BuilderExampleBuilder() {
+        }
+
+        public BuilderExampleBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public BuilderExampleBuilder age(int age) {
+            this.age = age;
+            return this;
+        }
+
+        public BuilderExample build() {
+            return new BuilderExample(name, age);
+        }
+
+        @java.lang.Override
+        public String toString() {
+            return &quot;BuilderExample.BuilderExampleBuilder(name = &quot; + this.name + &quot;, age = &quot; + this.age + &quot;)&quot;;
+        }
+    }
+}
+</code></pre>
+
+<h2 id="cleanup:612c57d5978407866131a3d9de00f820">@Cleanup</h2>
+
+<p>リソースをクローズするコードの自動生成を行う。</p>
+
+<h3 id="ビルド前-12行:612c57d5978407866131a3d9de00f820">ビルド前（12行）</h3>
+
+<pre><code class="language-java">public class CleanupExample {
+    public static void main(String[] args) throws IOException {
+        @Cleanup InputStream in = new FileInputStream(args[0]);
+        @Cleanup OutputStream out = new FileOutputStream(args[1]);
+        byte[] b = new byte[10000];
+        while (true) {
+            int r = in.read(b);
+            if (r == -1) break;
+            out.write(b, 0, r);
+        }
+    }
+}
+</code></pre>
+
+<h3 id="ビルド後-24行:612c57d5978407866131a3d9de00f820">ビルド後（24行）</h3>
+
+<pre><code class="language-java">public class CleanupExample {
+    public static void main(String[] args) throws IOException {
+        InputStream in = new FileInputStream(args[0]);
+        try {
+            OutputStream out = new FileOutputStream(args[1]);
+            try {
+                byte[] b = new byte[10000];
+                while (true) {
+                    int r = in.read(b);
+                    if (r == -1) break;
+                    out.write(b, 0, r);
+                }
+            } finally {
+                if (out != null) {
+                    out.close();
+                }
+            }
+        } finally {
+            if (in != null) {
+                in.close();
+            }
+        }
+    }
+}
+</code></pre>
+
+<h2 id="val:612c57d5978407866131a3d9de00f820">val</h2>
+
+<p>型を省略して再代入不可の変数を宣言できる（Scalaのval相当）
+ビルドはできて実行もできるけどプラグインが対応していなくて唐辛子のように赤い警告が出る。</p>
+
+<p><img src="https://dl.dropboxusercontent.com/u/54255753/blog/201404/lombok_val.png" width="480"></p>
+
+<h1 id="intellijプラグインの対応表:612c57d5978407866131a3d9de00f820">IntelliJプラグインの対応表</h1>
+
+<p><img src="https://dl.dropboxusercontent.com/u/54255753/blog/201404/lombok_intellij_plugin_feature_list.png" width="480"></p>
+
+<p><em>Updated Feb 16, 2014</em></p>
+
+<h1 id="所感:612c57d5978407866131a3d9de00f820">所感</h1>
+
+<ul>
+<li>ライブラリ自体はコンパイル時だけに作用してアプリには含まれないので容量が増えなくてグッド</li>
+<li>ビルド時間はそんなに気にならなさそう</li>
+<li>コード量は減るけどIDEのリファクタリングが効かなくなったり、JVMのテストから生成したコードが見えなかったり、未知のバグにハマることがありそう</li>
+</ul>
+
+<p>良いか悪いかでいうと、プラマイゼロくらいな気がします。</p>
+
+<h1 id="唐辛子について:612c57d5978407866131a3d9de00f820">唐辛子について</h1>
+
+<p>韓国人の同僚からキムチは昔はただの漬物だったんだけど、日本から唐辛子が入ってくるようになって今のように辛くなったという話を聞いた。
+なんとなく「唐」って付いてたから中国の四川あたりに生えてたのが韓国に伝わったのかなと思っていたので、へえぇと思って調べてみたら、唐辛子は中南米が原産地で、メキシコでの歴史は紀元前6000年に遡るくらい古くて、15世紀の大航海時代に世界に広まったらしい。
+「唐」っていうのは漠然と「外国」を指す語だったらしい。</p>
+
+<p>この手の辛いものは殺菌作用が強いので食中毒を防ぐとも言われていて、特に熱い地方で多く使われてたり、また殺菌のほかに害虫を減らす目的で栽培されたり、園芸では虫害を減らす目的で一緒に栽培されることがあったり、鑑賞するための唐辛子の品種もある。</p>
+
+<p><img src="http://www.geocities.jp/murayama301/_gl_images_/2.jpg" alt="" />
+</p>
+
+<p><em>観賞用のゴシキトウガラシ</em></p>
+
+<p><img src="http://www.worldpropertychannel.jp/gallery/5-Cap-Maison-rooftop-pool.jpg" alt="" />
+</p>
+
+<p>コロンブスはインドの胡椒を目指して西インド諸島（カリブ）を発見して、そこで見つけた唐辛子を胡椒と勘違いしたまま世界に広まってしまってred pepperとpepperの名称を混乱させたという話もあって、伝来史もおもしろかった。</p>
+
+        </section>
+    </div>
+  </div>
+
+  <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+  
+
+<div class="container">
+  <hr />
+  <hr />
+  
+    <span class="left">
+    &nbsp; <em>&laquo; Previous:</em> <a class="next" href="http://rejasupotaro.github.io/posts/2014/05/11/47/">関数型言語を学ぶことは実務でどう役に立ったか</a>
+    </span>
+  
+
+  
+    <span class="right">
+    <em>Next: </em><a class="next" href="http://rejasupotaro.github.io/posts/2013/12/14/26/"> &nbsp; AndroidのCIに纏わる諸々の問題</a> &raquo;
+    </span>
+  
+</div>
+
+  <br />
+  
+<div class="container">
+  <ul class="catlist">
+    <li><em>Categories: </em></li>
+    
+  </ul>
+</div>
+
+
+
+  
+  
+
+<div class="container content">
+<footer>
+  <div>
+    <p class="right credit">
+    Fancy footer here. Link to <a href="http://rejasupotaro.github.io/">Home Page</a>
+    </p>
+  </div>
+</footer>
+</div>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-36732392-2', 'sglyon.com');
+  ga('send', 'pageview');
+
+</script>
+
+
+</body>
+</html>
+
+
+
+

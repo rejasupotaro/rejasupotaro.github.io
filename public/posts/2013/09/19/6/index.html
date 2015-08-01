@@ -1,0 +1,303 @@
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <base href="http://rejasupotaro.github.io">
+    <title> モヒートはモッキングフレームワークで味はとても美味しい </title>
+    <link rel="canonical" href="http://rejasupotaro.github.io/posts/2013/09/19/6/">
+    
+
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/poole.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/syntax.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/lanyon.css">
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+</head>
+
+
+<body class="theme-base-08">
+  
+
+
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+
+<div class="sidebar" id="sidebar">
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/">Home</a>
+
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/posts">Blog</a>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2014 Spencer Lyon. Powered by <a href="http://hugo.spf13.com">Hugo</a>. Design adapted from <a href="http://lanyon.getpoole.com">Lanyon</a>.
+    </p>
+  </div>
+</div>
+
+
+  
+  <div class="wrap">
+    <div class="masthead">
+      <div class="container">
+        <h3 class="masthead-title">
+          <a href="http://rejasupotaro.github.io/posts" title="Blog">Blog Posts</a>
+        </h3>
+      </div>
+    </div>
+
+    
+    <div class="container content">
+      <h1 class="post-title">モヒートはモッキングフレームワークで味はとても美味しい</h1>
+        <section id="main">
+          <h5 id="date"> Thu Sep 19, 2013 </h5>
+          
+
+<h1 id="mojito-モヒート:7c4156473a0d57f79901cf8c5eff898e">mojito (モヒート)</h1>
+
+<p><img src="http://dl.dropbox.com/u/54255753/blog/201301/mojito.jpg" alt="" />
+</p>
+
+<p>モヒートは、キューバ・ハバナ発祥のカクテルの一つ。<br />
+由来は、新大陸として注目されていたアメリカ諸国から得られる富をコントロールする名目で、英国女王エリザベス1世が、スペイン領の都市を略奪する海賊達の手助けをしていた16世紀後半、海賊フランシス・ドレイクの部下であるリチャード・ドレイクが、1586年にモヒートの前身となる飲み物「ドラケ(draque)」をキューバの人々へ伝えた、という説が有力。<br />
+ラムをベースにソーダ、ライム、砂糖、ミントを加えたもの。ミントとソーダの清涼感が暑い夏にぴったりな「夏と言えば」の定番カクテル。</p>
+
+<p>アーネスト・ヘミングウェイが好んで飲んでいた話は有名である。</p>
+
+<h1 id="mockito-http-code-google-com-p-mockito-モヒート:7c4156473a0d57f79901cf8c5eff898e"><a href="http://code.google.com/p/mockito/">mockito</a> (モヒート)</h1>
+
+<p><img src="http://dl.dropbox.com/u/54255753/blog/201301/mockito.jpg" alt="" />
+</p>
+
+<p>モヒートは、Javaのモックライブラリ。<br />
+モックライブラリは他にもいろいろあるけど <a href="http://code.google.com/p/mockito/wiki/MockitoVSEasyMock">EasyMockと比べても</a> mockitoの方が簡潔に書ける。<br />
+導入するとモヒートを飲んだあとのようにスカッとする。</p>
+
+<p><strong>&ldquo;Mockito is a mocking framework that tastes really good!&rdquo;</strong> とのこと。(公式)</p>
+
+<h1 id="mockitoナシ:7c4156473a0d57f79901cf8c5eff898e">mockitoナシ</h1>
+
+<p>今までのやり方。まずモッククラスを定義して、</p>
+
+<pre><code class="language-java">import com.android.volley.Network;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+
+public class MockNetwork implements Network {
+    private byte[] mFakeResponseData = null;
+
+    public void setFakeResponseData(byte[] data) {
+        mFakeResponseData = data;
+    }
+
+    @Override
+    public NetworkResponse performRequest(Request&lt;?&gt; request) throws VolleyError {
+        return new NetworkResponse(mFakeResponseData);
+    }
+}
+</code></pre>
+
+<p>テストするときに返したいデータをセットする。</p>
+
+<pre><code class="language-java">MockNetwork mockNetwork = new MockNetwork();
+mockNetwork.setFakeResponseData(&quot;{\&quot;code\&quot;:200}&quot;.getBytes());
+</code></pre>
+
+<h1 id="mockitoアリ:7c4156473a0d57f79901cf8c5eff898e">mockitoアリ</h1>
+
+<p>このメソッドが呼ばれたときにこれを返す、とするだけ。</p>
+
+<pre><code class="language-java">Network mockNetwork = mock(Network.class);
+when(mockNetwork.performRequest(any(Request.class))).
+        thenReturn(new NetworkResponse(&quot;{\&quot;code\&quot;:200}&quot;.getBytes()));
+</code></pre>
+
+<p>インタフェースが統一されることによって、次にテストを書く人が「MockNetworkというクラスがあるらしい、ふむふむ、setFakeResponseDataに渡したbyte列がperformRequestで返ってくるのか」と調べる時間を省くことができる。</p>
+
+<p>特定のオブジェクトの一部のメソッドの振る舞いを変えるときもカンタン。</p>
+
+<pre><code class="language-groovy">doReturn(new HashMap&lt;String, String&gt;() { { put(&quot;fake&quot;, &quot;foo&quot;); } }).when(spyRequest).getHeaders();
+</code></pre>
+
+<p>ちなみにdependencyを解決できなかったので、jarを落として ./src/instrumentTest/libs/ に配置して以下のようにした。</p>
+
+<pre><code class="language-groovy">instrumentTestCompile fileTree(dir: './src/instrumentTest/libs', include: '*.jar')
+</code></pre>
+
+<p>モヒートにギョームでもプライベートでもお世話になってる。</p>
+
+<hr />
+
+<p>↑ここまでモヒートの話↑<br />
+↓ここまで他のフレームワークの紹介↓</p>
+
+<h1 id="fest-android-http-square-github-io-fest-android:7c4156473a0d57f79901cf8c5eff898e"><a href="http://square.github.io/fest-android/">Fest Android</a></h1>
+
+<p>安心と信頼の <a href="https://github.com/square">Square</a> 製テストフレームワーク。(Squareが公開してるライブラリは本当にどれもレベルが高い)<br />
+元ネタは <a href="http://fest.easytesting.org/">Fixtures for Easy Software Testing</a> のAndroid拡張となっている。</p>
+
+<h3 id="regular-junit:7c4156473a0d57f79901cf8c5eff898e">REGULAR JUNIT</h3>
+
+<pre><code class="language-java">assertEquals(View.VISIBLE, layout.getVisibility());
+assertEquals(VERTICAL, layout.getOrientation());
+assertEquals(4, layout.getChildCount());
+assertEquals(SHOW_DIVIDERS_MIDDLE, layout.getShowDividers());
+</code></pre>
+
+<h3 id="fest-android:7c4156473a0d57f79901cf8c5eff898e">FEST ANDROID</h3>
+
+<pre><code class="language-java">assertThat(layout).isVisible()
+    .isVertical()
+    .hasChildCount(4)
+    .hasShowDividers(SHOW_DIVIDERS_MIDDLE);
+</code></pre>
+
+<h1 id="calculon-https-github-com-mttkay-calculon:7c4156473a0d57f79901cf8c5eff898e"><a href="https://github.com/mttkay/calculon">calculon</a></h1>
+
+<p><img src="https://raw.github.com/mttkay/calculon/master/assets/calculon.png" alt="" />
+</p>
+
+<p>こちらも便利メソッドを提供している。</p>
+
+<pre><code class="language-java">// direct assertion on current activity
+assertThat().inPortraitMode();
+assertThat().viewExists(R.id.launch_bar_button);
+
+// assert specific condition on current activity
+    assertThat().satisfies(new Predicate&lt;Activity&gt;() {
+    public boolean check(Activity target) {
+        return target.isTaskRoot();
+    }
+});
+</code></pre>
+
+<p>Fest Androidとの違いは、calculonはStoryTestを提供しており、画面遷移を伴うストーリーをテストとして実行することができる。</p>
+
+<h1 id="robolectric-spock:7c4156473a0d57f79901cf8c5eff898e">Robolectric + Spock</h1>
+
+<p>この動画で紹介されているGroovyの元祖PowerAssert系テストフレームワーク <a href="https://code.google.com/p/spock/">Spock</a> を頑張ってAndroidで動かすというもの。</p>
+
+<iframe width="420" height="315" src="//www.youtube.com/embed/aDoQxqO_6rI" frameborder="0" allowfullscreen></iframe>
+
+<p>RobolectricはAndroidのテストをJVM上で実行するためのフレームワークで、AndroidのクラスをJavaのShadowクラスに変換して実行するしくみになっている。
+JVMでテストが実行できるようになるということは、Groovyでもテストが書けるということなので、Robolectricを導入すればSpockも使えるようになる。</p>
+
+<h3 id="robolectric:7c4156473a0d57f79901cf8c5eff898e">Robolectric</h3>
+
+<pre><code class="language-java">@Test
+public void testDialogContent() {
+    // given
+    final MainActivity mainActivity = new MainActivity();
+    mainActivity.onCreate(null);
+
+    // when
+    mainActivity.button.performClick();
+
+    // then
+    final ShadowAlertDialog dialog = (ShadowAlertDialog) Robolectric.shadowOf(ShadowDialog.getLatestDialog());
+    Assert.assertEquals(&quot;title&quot;, dialog.getTitle());
+    Assert.assertEquals(&quot;Ok&quot;, dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText());
+    Assert.assertEquals(&quot;Cancel&quot;, dialog.getButton(AlertDialog.BUTTON_NEGATIVE).getText());
+    Assert.assertEquals(&quot;Dismiss&quot;, dialog.getButton(AlertDialog.BUTTON_NEUTRAL).getText());
+    Assert.assertEquals(&quot;Dialog Content&quot;, dialog.getMessage());
+}
+</code></pre>
+
+<h3 id="robolectric-spock-1:7c4156473a0d57f79901cf8c5eff898e">Robolectric + Spock</h3>
+
+<pre><code class="language-groovy">def &quot;should displayed dialog's button has good text&quot;() {
+    given:
+    def mainActivity = new MainActivity()
+    mainActivity.onCreate(null)
+
+    when:
+    mainActivity.button.performClick()
+    def dialog = (ShadowAlertDialog) Robolectric.shadowOf(ShadowDialog.getLatestDialog());
+
+    then:
+    dialog.getButton(number).text == value
+
+    where:
+    number                      | value
+    AlertDialog.BUTTON_POSITIVE | &quot;Ok&quot;
+    AlertDialog.BUTTON_NEGATIVE | &quot;Cancel&quot;
+    AlertDialog.BUTTON_NEUTRAL  | &quot;Dismiss&quot;
+}
+</code></pre>
+
+<p>導入コスト、学習コスト、効果を鑑みつつ、引き続きテスティングフレームワークをテイスティングしていきます。</p>
+
+        </section>
+    </div>
+  </div>
+
+  <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+  
+
+<div class="container">
+  <hr />
+  <hr />
+  
+    <span class="left">
+    &nbsp; <em>&laquo; Previous:</em> <a class="next" href="http://rejasupotaro.github.io/posts/2013/09/30/10/">S3でmavenリポジトリをホストしてGradleでアップロードする</a>
+    </span>
+  
+
+  
+    <span class="right">
+    <em>Next: </em><a class="next" href="http://rejasupotaro.github.io/posts/2013/07/27/3/"> &nbsp; aar dependency</a> &raquo;
+    </span>
+  
+</div>
+
+  <br />
+  
+<div class="container">
+  <ul class="catlist">
+    <li><em>Categories: </em></li>
+    
+  </ul>
+</div>
+
+
+
+  
+  
+
+<div class="container content">
+<footer>
+  <div>
+    <p class="right credit">
+    Fancy footer here. Link to <a href="http://rejasupotaro.github.io/">Home Page</a>
+    </p>
+  </div>
+</footer>
+</div>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-36732392-2', 'sglyon.com');
+  ga('send', 'pageview');
+
+</script>
+
+
+</body>
+</html>
+
+
+
+

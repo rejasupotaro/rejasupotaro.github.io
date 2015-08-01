@@ -1,0 +1,347 @@
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <base href="http://rejasupotaro.github.io">
+    <title> ActiveAndroidの初期化時間を4分の1にする </title>
+    <link rel="canonical" href="http://rejasupotaro.github.io/posts/2013/12/05/23/">
+    
+
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/poole.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/syntax.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/lanyon.css">
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+</head>
+
+
+<body class="theme-base-08">
+  
+
+
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+
+<div class="sidebar" id="sidebar">
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/">Home</a>
+
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/posts">Blog</a>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2014 Spencer Lyon. Powered by <a href="http://hugo.spf13.com">Hugo</a>. Design adapted from <a href="http://lanyon.getpoole.com">Lanyon</a>.
+    </p>
+  </div>
+</div>
+
+
+  
+  <div class="wrap">
+    <div class="masthead">
+      <div class="container">
+        <h3 class="masthead-title">
+          <a href="http://rejasupotaro.github.io/posts" title="Blog">Blog Posts</a>
+        </h3>
+      </div>
+    </div>
+
+    
+    <div class="container content">
+      <h1 class="post-title">ActiveAndroidの初期化時間を4分の1にする</h1>
+        <section id="main">
+          <h5 id="date"> Thu Dec 5, 2013 </h5>
+          
+
+<h1 id="activeandroidとは:b0c5fe2e1172846fafcbfd89ed49cdef">ActiveAndroidとは</h1>
+
+<p><a href="http://www.activeandroid.com/">ActiveAndroid</a>とは、アクティブレコードパターンのAndroidのORMです。</p>
+
+<p>こういうクエリーがあったら</p>
+
+<pre><code class="language-sql">INSERT INTO Items(id, name) VALUES(NULL, 'My Item');
+</code></pre>
+
+<p>こう書けます。</p>
+
+<pre><code class="language-java">Item item = new Item();
+item.name = &quot;My Item&quot;;
+item.save();
+</code></pre>
+
+<p>セレクトするときにこうしていたのは、</p>
+
+<pre><code class="language-sql">SELECT * FROM Items;
+</code></pre>
+
+<p>このようになります。</p>
+
+<pre><code class="language-java">new Select().from(Item.class).execute();
+</code></pre>
+
+<p>※公式ドキュメントより</p>
+
+<p>DBの接続もテーブルの作成もマイグレーションも、なんでもActiveAndroidが面倒を見てくれます！<br />
+<strong>ん？今なんでもっていったよね？</strong></p>
+
+<h1 id="初期化と破棄:b0c5fe2e1172846fafcbfd89ed49cdef">初期化と破棄</h1>
+
+<pre><code class="language-java">public class MyApplication extends Application {
+  @Override
+  public void onCreate() {
+    super.onCreate();
+    ActiveAndroid.initialize(this); // ここでなんでもします！
+  }
+  @Override
+  public void onTerminate() {
+    super.onTerminate();
+    ActiveAndroid.dispose();
+  }
+}
+</code></pre>
+
+<p>※公式ドキュメントより</p>
+
+<h1 id="ボトルネックを探す:b0c5fe2e1172846fafcbfd89ed49cdef">ボトルネックを探す</h1>
+
+<p>Traceviewで表示してみる。</p>
+
+<p><img src="https://dl.dropboxusercontent.com/u/54255753/blog/201312/traceview.png" alt="" />
+</p>
+
+<p>Invocation Countが1でInclusive Timeの80.1%を持っていっている <code>ModelInfo#scanForModel</code> が重いのでソースを見る。</p>
+
+<pre><code class="language-java">private void scanForModel(Context context) throws IOException {
+  String packageName = context.getPackageName();
+  String sourcePath = context.getApplicationInfo().sourceDir;
+  List&lt;String&gt; paths = new ArrayList&lt;String&gt;();
+
+  if (sourcePath != null &amp;&amp; !(new File(sourcePath).isDirectory())) {
+    DexFile dexfile = new DexFile(sourcePath);
+    Enumeration&lt;String&gt; entries = dexfile.entries();
+
+    while (entries.hasMoreElements()) {
+      paths.add(entries.nextElement());
+    }
+  }
+  // Robolectric fallback
+  else {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    Enumeration&lt;URL&gt; resources = classLoader.getResources(&quot;&quot;);
+
+    while (resources.hasMoreElements()) {
+      String path = resources.nextElement().getFile();
+      if (path.contains(&quot;bin&quot;) || path.contains(&quot;classes&quot;)) {
+        paths.add(path);
+      }
+    }
+  }
+
+  for (String path : paths) {
+    File file = new File(path);
+    scanForModelClasses(file, packageName, context.getClassLoader());
+  }
+}
+
+private void scanForModelClasses(File path, String packageName, ClassLoader classLoader) {
+  if (path.isDirectory()) {
+    for (File file : path.listFiles()) {
+      scanForModelClasses(file, packageName, classLoader);
+    }
+  }
+  else {
+    String className = path.getName();
+
+    // Robolectric fallback
+    if (!path.getPath().equals(className)) {
+      className = path.getPath();
+
+      if (className.endsWith(&quot;.class&quot;)) {
+        className = className.substring(0, className.length() - 6);
+      }
+      else {
+        return;
+      }
+
+      className = className.replace(&quot;/&quot;, &quot;.&quot;);
+
+      int packageNameIndex = className.lastIndexOf(packageName);
+      if (packageNameIndex &lt; 0) {
+        return;
+      }
+
+      className = className.substring(packageNameIndex);
+    }
+
+    try {
+      Class&lt;?&gt; discoveredClass = Class.forName(className, false, classLoader);
+      if (ReflectionUtils.isModel(discoveredClass)) {
+        @SuppressWarnings(&quot;unchecked&quot;)
+        Class&lt;? extends Model&gt; modelClass = (Class&lt;? extends Model&gt;) discoveredClass;
+        mTableInfos.put(modelClass, new TableInfo(modelClass));
+      }
+      else if (ReflectionUtils.isTypeSerializer(discoveredClass)) {
+        TypeSerializer instance = (TypeSerializer) discoveredClass.newInstance();
+        mTypeSerializers.put(instance.getDeserializedType(), instance);
+      }
+    }
+    catch (ClassNotFoundException e) {
+      Log.e(&quot;Couldn't create class.&quot;, e);
+    }
+    catch (InstantiationException e) {
+      Log.e(&quot;Couldn't instantiate TypeSerializer.&quot;, e);
+    }
+    catch (IllegalAccessException e) {
+      Log.e(&quot;IllegalAccessException&quot;, e);
+    }
+  }
+}
+</code></pre>
+
+<p>まとめると、</p>
+
+<ol>
+<li>DexFileからすべてのクラスパスを抽出して</li>
+<li>クラスローダーでクラスをロードして</li>
+<li>対象クラスがModelクラスのサブクラスか判定してTableInfoに渡す</li>
+</ol>
+
+<p>などの処理をしています。
+なので、この処理を飛ばすようにします。</p>
+
+<h1 id="初期化時間の比較:b0c5fe2e1172846fafcbfd89ed49cdef">初期化時間の比較</h1>
+
+<p><code>Application#onCreate</code> から <code>MainActivity#onCreate</code> まで</p>
+
+<h2 id="パターン1:b0c5fe2e1172846fafcbfd89ed49cdef">パターン1</h2>
+
+<p>ActiveAndroidナシ(比較のため)</p>
+
+<pre><code class="language-java">public class AASampleApplication extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Debug.startMethodTracing(&quot;aasample&quot;);
+    }
+}
+</code></pre>
+
+<h2 id="パターン2:b0c5fe2e1172846fafcbfd89ed49cdef">パターン2</h2>
+
+<p>ActiveAndroid.initialize(Context) で初期化</p>
+
+<pre><code class="language-java">public class AASampleApplication extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Debug.startMethodTracing(&quot;aasample.before&quot;);
+        ActiveAndroid.initialize(this);
+    }
+}
+</code></pre>
+
+<h2 id="パターン3:b0c5fe2e1172846fafcbfd89ed49cdef">パターン3</h2>
+
+<p>ActiveAndroid#initialize(Configuration) で初期化</p>
+
+<pre><code class="language-java">public class AASampleApplication extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Debug.startMethodTracing(&quot;aasample.after&quot;);
+        Configuration conf = new Configuration.Builder(this)
+                .setModelClasses(User.class)
+                .create();
+        ActiveAndroid.initialize(conf);
+    }
+}
+</code></pre>
+
+<h1 id="測定結果:b0c5fe2e1172846fafcbfd89ed49cdef">測定結果</h1>
+
+<p><img src="https://dl.dropboxusercontent.com/u/54255753/blog/201312/initialize.png" alt="" />
+</p>
+
+<h1 id="まとめ:b0c5fe2e1172846fafcbfd89ed49cdef">まとめ</h1>
+
+<ul>
+<li>利便性とパフォーマンスはトレードオフの関係になる場合が多い。</li>
+<li>ライブラリを読むといいことがある。</li>
+</ul>
+
+        </section>
+    </div>
+  </div>
+
+  <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+  
+
+<div class="container">
+  <hr />
+  <hr />
+  
+    <span class="left">
+    &nbsp; <em>&laquo; Previous:</em> <a class="next" href="http://rejasupotaro.github.io/posts/2013/12/14/26/">AndroidのCIに纏わる諸々の問題</a>
+    </span>
+  
+
+  
+    <span class="right">
+    <em>Next: </em><a class="next" href="http://rejasupotaro.github.io/posts/2013/11/12/20/"> &nbsp; development, staging, production...</a> &raquo;
+    </span>
+  
+</div>
+
+  <br />
+  
+<div class="container">
+  <ul class="catlist">
+    <li><em>Categories: </em></li>
+    
+  </ul>
+</div>
+
+
+
+  
+  
+
+<div class="container content">
+<footer>
+  <div>
+    <p class="right credit">
+    Fancy footer here. Link to <a href="http://rejasupotaro.github.io/">Home Page</a>
+    </p>
+  </div>
+</footer>
+</div>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-36732392-2', 'sglyon.com');
+  ga('send', 'pageview');
+
+</script>
+
+
+</body>
+</html>
+
+
+
+
