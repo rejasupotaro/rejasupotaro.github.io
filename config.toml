@@ -1,0 +1,13 @@
+baseurl = "http://rejasupotaro.github.io/"
+languageCode = "en-us"
+title = "Rejasupoem"
+contentdir = "content"
+layoutdir = "layouts"
+publishdir = "public"
+canonifyurls = true
+
+[indexes]
+category = "categories"
+
+[permalinks]
+post = "/:year/:month/:day/:filename/"
