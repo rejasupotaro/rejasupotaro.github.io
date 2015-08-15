@@ -9,8 +9,96 @@
     
     
     
-    <lastBuildDate>Thu, 30 Apr 2015 00:00:00 UT</lastBuildDate>
+    <lastBuildDate>Sat, 15 Aug 2015 00:00:00 UT</lastBuildDate>
     <atom:link href="http://rejasupotaro.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Heartless code review</title>
+      <link>http://rejasupotaro.github.io/posts/2015/08/15/63/</link>
+      <pubDate>Sat, 15 Aug 2015 00:00:00 UT</pubDate>
+      
+      <guid>http://rejasupotaro.github.io/posts/2015/08/15/63/</guid>
+      <description>&lt;p&gt;I talked about code review at &lt;a href=&#34;https://github.com/potatotips/potatotips/wiki/potatotips-20&#34;&gt;potatotips #20&lt;/a&gt;.&lt;/p&gt;
+
+&lt;script async class=&#34;speakerdeck-embed&#34; data-id=&#34;6f99977c598943dbb33f0e2987382d39&#34; data-ratio=&#34;1.77777777777778&#34; src=&#34;//speakerdeck.com/assets/embed.js&#34;&gt;&lt;/script&gt;
+
+&lt;p&gt;Sometimes I think that code review is not only for code but also for human.
+If bots can review code completely, reviewing code by human has value.&lt;/p&gt;
+
+&lt;p&gt;My FindBugs&amp;rsquo; setting is below.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;// FindBugs - Gradle DSL Version 2.5 https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.FindBugs.html
+apply plugin: &#39;findbugs&#39;
+
+task findbugs(type: FindBugs, dependsOn: assembleDebug) {
+    description &#39;Run findbugs&#39;
+    group &#39;verification&#39;
+
+    classes = fileTree(dir: rootProject.projectDir,
+            includes: [&#39;*/build/intermediates/classes/**/*.class&#39;],
+            exclude: &#39;**/*test*/**&#39;)
+
+    source = fileTree(dir: rootProject.projectDir,
+            includes: [&#39;*/src/**/java/com/app/**/*.java&#39;],
+            exclude: &#39;**/*test*/**&#39;)
+
+    classpath = files()
+
+    excludeFilter = file(&amp;quot;$rootProject.projectDir/gradle/findbugs/exclude.xml&amp;quot;)
+
+    def report = &amp;quot;xml&amp;quot; // default output format is xml
+    if (project.hasProperty(&amp;quot;report&amp;quot;)) {
+        report = project.getProperty(&amp;quot;report&amp;quot;)
+    }
+
+    switch (report) {
+        case &amp;quot;xml&amp;quot;:
+            reports {
+                xml.enabled = true
+                xml.withMessages = true
+                html.enabled = false
+            }
+            break
+        case &amp;quot;html&amp;quot;:
+            reports {
+                xml.enabled = false
+                xml.withMessages = false
+                html.enabled = true
+            }
+            break
+        default:
+            throw new IllegalArgumentException(&amp;quot;Undefined report format is specified: &amp;quot; + report)
+    }
+
+    effort = &#39;max&#39;
+    reportLevel = &#39;low&#39;
+
+    ignoreFailures = true
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-xml&#34;&gt;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt;
+&amp;lt;FindBugsFilter&amp;gt;
+    &amp;lt;Match&amp;gt;
+        &amp;lt;Class name=&amp;quot;~.*BuildConfig.*&amp;quot; /&amp;gt;
+    &amp;lt;/Match&amp;gt;
+    &amp;lt;Match&amp;gt;
+        &amp;lt;Class name=&amp;quot;~.*R\$.*&amp;quot; /&amp;gt;
+    &amp;lt;/Match&amp;gt;
+    &amp;lt;Match&amp;gt;
+        &amp;lt;Class name=&amp;quot;~.*\$\$ViewBinder.*&amp;quot; /&amp;gt;
+    &amp;lt;/Match&amp;gt;
+    &amp;lt;Match&amp;gt;
+        &amp;lt;Class name=&amp;quot;~.*\.*Test&amp;quot; /&amp;gt;
+        &amp;lt;Not&amp;gt;
+            &amp;lt;Bug code=&amp;quot;IJU&amp;quot; /&amp;gt;
+        &amp;lt;/Not&amp;gt;
+    &amp;lt;/Match&amp;gt;
+    &amp;lt;Bug code=&amp;quot;SIC,UPM,UrF,UwF,&amp;quot; /&amp;gt;
+&amp;lt;/FindBugsFilter&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
     
     <item>
       <title>イタリアに行ってきた</title>
@@ -1895,74 +1983,6 @@ public void testDialogContent() {
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;導入コスト、学習コスト、効果を鑑みつつ、引き続きテスティングフレームワークをテイスティングしていきます。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>aar dependency</title>
-      <link>http://rejasupotaro.github.io/posts/2013/07/27/3/</link>
-      <pubDate>Sat, 27 Jul 2013 00:00:00 UT</pubDate>
-      
-      <guid>http://rejasupotaro.github.io/posts/2013/07/27/3/</guid>
-      <description>&lt;p&gt;Android StudioでLibrary Projectを参照するのにソースコードを修正するたびにjarで固めてlibsに入れてもいいのですが、
-面倒だしバージョン管理もしたいので調べてたらGitHubをmavenrepoにしてbuild.gradleにdependencyを書いてaarを読み込めることが分かった。&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&#34;http://u1aryz.blogspot.jp/2013/06/githubmavenandroidaar.html&#34;&gt;githubをMavenリポジトリとしてAndroidライブラリプロジェクト(aar)をデプロイして使用する&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Library Projectの対象moduleのbuild.gradleを以下のように変更。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath &#39;com.android.tools.build:gradle:0.5.+&#39;
-    }
-}
-apply plugin: &#39;android-library&#39;
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    compile &#39;com.android.support:support-v4:13.0.+&#39;
-}
-
-android {
-    compileSdkVersion 17
-    buildToolsVersion &amp;quot;17.0.0&amp;quot;
-
-    defaultConfig {
-        minSdkVersion 9
-        targetSdkVersion 16
-    }
-}
-
-apply plugin: &#39;maven&#39;
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository url: &amp;quot;file://${projectDir}/repository&amp;quot;
-            pom.groupId = &#39;com.rejasupotaro&#39;
-            pom.artifactId = &#39;rejasupo-commons&#39;
-            pom.version = &#39;0.0.1&#39;
-        }
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;参照するプロジェクトのbuild.gradleにdependencyを追加。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;repositories {
-    maven { url &#39;https://raw.github.com/takiguchi0817/rejasupo-commons/master/rejasupo-commons/repository&#39; }
-}
-
-dependencies {
-    compile &#39;com.rejasupotaro:rejasupo-commons:0.0.1&#39;
-}
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     
