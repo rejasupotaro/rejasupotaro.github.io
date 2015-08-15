@@ -70,6 +70,21 @@
 
 <article class="post">
     <header>
+      <h2><a href='http://rejasupotaro.github.io/posts/2015/08/15/63/'> Heartless code review</a> </h2>
+      <div class="meta">Sat, Aug 15, 2015</div>
+    </header>
+
+    I talked about code review at potatotips #20. Sometimes I think that code review is not only for code but also for human. If bots can review code completely, reviewing code by human has value. My FindBugs&rsquo; setting is below. // FindBugs - Gradle DSL Version 2.5 https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.FindBugs.html apply plugin: 'findbugs' task findbugs(type: FindBugs, dependsOn: assembleDebug) { description 'Run findbugs' group 'verification' classes = fileTree(dir: rootProject.projectDir, includes: ['*/build/intermediates/classes/**/*.class'], exclude: '**/*test*/**')
+    <footer>
+        <a href='http://rejasupotaro.github.io/posts/2015/08/15/63/'><nobr>Read more →</nobr></a>
+    </footer>
+</article>
+
+              
+              
+
+<article class="post">
+    <header>
       <h2><a href='http://rejasupotaro.github.io/posts/2015/04/30/62/'> イタリアに行ってきた</a> </h2>
       <div class="meta">Thu, Apr 30, 2015</div>
     </header>
@@ -197,21 +212,6 @@
     ActiveAndroidとは ActiveAndroidとは、アクティブレコードパターンのAndroidのORMです。 こういうクエリーがあったら INSERT INTO Items(id, name) VALUES(NULL, 'My Item'); こう書けます。 Item item = new Item(); item.name = &quot;My Item&quot;; item.save(); セレクトするときにこうしていたのは、 SELECT * FROM Items; このようになります。 new Select().from(Item.class).execute(); ※公式ドキュメントより DBの接続もテーブルの作成もマイグレーションも、なんでもActiveAndroidが面倒を見てくれます！ ん？今なんでもっていったよね？ 初期化と破棄 public class MyApplication extends Application { @Override public void onCreate() { super.onCreate(); ActiveAndroid.initialize(this); // ここでなんでもします！ } @Override public void onTerminate() { super.onTerminate(); ActiveAndroid.dispose(); } } ※公式ドキュメントより ボトルネックを探す Traceviewで表示してみる。 Invocation Countが1でInclusive Timeの80.1%を持っていっている ModelInfo#scanForModel が重いのでソースを見る。 private void scanForModel(Context context) throws IOException { String packageName = context.getPackageName(); String sourcePath = context.getApplicationInfo().sourceDir; List&lt;String&gt; paths = new ArrayList&lt;String&gt;(); if (sourcePath != null &amp;&amp; !(new File(sourcePath).isDirectory())) { DexFile dexfile = new DexFile(sourcePath); Enumeration&lt;String&gt; entries = dexfile.entries(); while (entries.hasMoreElements()) { paths.add(entries.nextElement()); } } // Robolectric fallback else { ClassLoader classLoader = Thread.currentThread().getContextClassLoader(); Enumeration&lt;URL&gt; resources = classLoader.getResources(&quot;&quot;); while (resources.hasMoreElements()) { String path = resources.nextElement().getFile(); if (path.contains(&quot;bin&quot;) || path.contains(&quot;classes&quot;)) { paths.add(path); } } } for (String path : paths) { File file = new File(path); scanForModelClasses(file, packageName, context.getClassLoader()); } } private void scanForModelClasses(File path, String packageName, ClassLoader classLoader) { if (path.isDirectory()) { for (File file : path.listFiles()) { scanForModelClasses(file, packageName, classLoader); } } else { String className = path.getName(); // Robolectric fallback if (!path.getPath().equals(className)) { className = path.getPath(); if (className.endsWith(&quot;.class&quot;)) { className = className.substring(0, className.length() - 6); } else { return; } className = className.replace(&quot;/&quot;, &quot;.&quot;); int packageNameIndex = className.lastIndexOf(packageName); if (packageNameIndex &lt; 0) { return; } className = className.substring(packageNameIndex); } try { Class&lt;?&gt; discoveredClass = Class.forName(className, false, classLoader); if (ReflectionUtils.isModel(discoveredClass)) { @SuppressWarnings(&quot;unchecked&quot;) Class&lt;?
     <footer>
         <a href='http://rejasupotaro.github.io/posts/2013/12/05/23/'><nobr>Read more →</nobr></a>
-    </footer>
-</article>
-
-              
-              
-
-<article class="post">
-    <header>
-      <h2><a href='http://rejasupotaro.github.io/posts/2013/11/12/20/'> development, staging, production...</a> </h2>
-      <div class="meta">Tue, Nov 12, 2013</div>
-    </header>
-
-    環境による設定の切り替えについて ウェブアプリケーション開発 development (開発者の手元のPCだったりVMだったり) staging (本番環境と同等の環境) production (本番環境) スマートフォンアプリ開発 development (手元でデバッグする用) beta (社内β配信用) release (Google Playにアップロードする用) Androidでの環境の切り替え 要件 APIのエンドポイントをステージングと本番環境で自動で切り替えたい 前提条件 ビルドツールはGradleを使っている 解決方法 buildConfigに定数を定義する(buildConfigプロパティに渡したStringが直接Generateされます) // build.gradle buildTypes { debug { buildConfig &quot;public static final boolean STAGING = true;&quot; debuggable true runProguard false } ... /** Automatically generated file. DO NOT MODIFY */ package com.cookpad.android.activities; public final class BuildConfig { public static final boolean DEBUG = Boolean.parseBoolean(&quot;true&quot;); // lines from build type: debug public static final boolean STAGING = true; } public class MyApiClient { public static final String endpoint = BuildConfig.STAGING ?
-    <footer>
-        <a href='http://rejasupotaro.github.io/posts/2013/11/12/20/'><nobr>Read more →</nobr></a>
     </footer>
 </article>
 
