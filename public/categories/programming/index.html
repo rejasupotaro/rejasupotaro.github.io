@@ -1,0 +1,118 @@
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <base href="http://rejasupotaro.github.io">
+    <title> Programming </title>
+    <link rel="canonical" href="http://rejasupotaro.github.io/categories/programming/">
+    
+
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/poole.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/syntax.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/lanyon.css">
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+</head>
+
+
+<body class="theme-base-08">
+  
+
+
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+
+<div class="sidebar" id="sidebar">
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/">Home</a>
+
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/posts">Blog</a>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2014 Spencer Lyon. Powered by <a href="http://hugo.spf13.com">Hugo</a>. Design adapted from <a href="http://lanyon.getpoole.com">Lanyon</a>.
+    </p>
+  </div>
+</div>
+
+
+  
+  <div class="wrap">
+    <div class="masthead">
+      <div class="container">
+        <h3 class="masthead-title">
+          <a href="http://rejasupotaro.github.io/posts" title="Blog">Blog Posts</a>
+        </h3>
+      </div>
+    </div>
+
+  
+    <div class="container content">
+      <h1 class="post-title">Recent Posts</h1>
+        <section id="main">
+          <div>
+            <h5><a href="http://rejasupotaro.github.io/categories">Full Category Index</a></h5>
+            <h2>Posts in &ldquo;Programming&rdquo;</h2>
+            
+            
+
+<article class="post">
+    <header>
+      <h2><a href='http://rejasupotaro.github.io/posts/2014/05/11/47/'> 関数型言語を学ぶことは実務でどう役に立ったか</a> </h2>
+      <div class="meta">Sun, May 11, 2014</div>
+    </header>
+
+    関数型LT大会で「実社会の問題を解決する関数型言語」というタイトルで発表しました。 というのも、会社で「すごいHaskellたのしく学ぼう！」の輪読会をしていて、最初こそ10人以上の人が参加していたのだけど、章が進むごとにどんどん人が離脱していって、主催者としてはなんとか完走したいという思いがあったので、調べたのですが、 ヒアリングから、この二つの線がクロスしたときに、人は離脱するという知見が得られました。 ということで、Haskellに対して実用性を見出したいと思いながら半年を過ごしたのですが、実用的 = 仕事で使うということであれば、今の現場でHaskellに移行するのは現実的ではありません。 でも、Haskellには関数型言語のエッセンスが詰まっていて学びが多かったと思っていて、直接的には使っていないけど、概念として役立つことがあると思ったので、それを伝えるために今回文章に起こしました。 実用性と言ったけど、何が実用的かは立場によって異なっていて、ここでの実用性とは一般的なWeb企業の話です。 NetflixのAPIの最適化 NetflixのAPIの最適化についての記事（Optimizing the Netflix API）がまさにそれで、多くのWeb企業でREST APIのクライアントから見たときの効率の悪さには頭を悩ましていると思うのだけど、それをいかにして最適化したのかと、後日その記事のフォローで、具体的なサーバの実装について解説した記事（Functional Reactive in the Netflix API with RxJava）がまさに好例だなと思って、この話をしました。 APIの最適化のために、スレッドセーフにしつつ時には同期させたりしながら並列でリクエストを送る低レベルなスレッド操作を、シンプルに表現できるようにする必要があって、そこでNetflixではFRP（Functional Reactive Programming）のアプローチを取っていました。 FRPとは Behaviorの例 マウスの座標 日照によって変化するボンネットの温度 振り子運動をしているブランコの速度 刻々と変化する株価 Eventの例（時間と値が組になったストリーム） キーを押した時刻tと、どのキーかを表すcを組にした(t, c) マウスをクリックするごとに発生するEvent ボンネットの温度が5度上がる毎に発生するEvent ブランコの速度が0になるたびに発生するEvent 株式市場で取引の開始・終了を知らせるEvent 応用先 イベントドリブンなコードで処理がぶつ切りになったりコールバック地獄になるのを避ける アニメーションやコンピュータミュージックのシグナル処理を自然に書けるようにする LINQ Excel Haskell界では10年以上前からFRPに関する研究が続けられているようです。 実装ではMicrosoftがOSSで開発しているRx（Reactive Extensions）が有名で、そのNetflixがそのJava版であるRxJavaを開発しています。 複雑なGUIの世界を完結に表現したい 今度はサーバ側ではなく、クライアントでの具体的な実装例を紹介します。 下の画像はシンプルなメッセージングアプリのスクリーンショットです。 仕様を書き出すと、次のようになります。 一見シンプルに見えるアプリですが、以外と複雑ですね。 画面内の見えている要素はどこかの要素の状態に依存していて、しかもアプリやシステムが非同期で各要素の状態を更新する、ということはアプリではよくあります。 そのため、画面のある一部を変更したいだけなのに依存性を検証してあちこちのイベントを貼り直したりして、そして保守しにくいコードへ…という問題が起こります。 FRPのライブラリの多くは、MicrosoftのReactive Extensionsから派生していますが、RxではBehaiviorはObservableというクラスで表現されています。 Instead of blocking APIs ... class VideoService { def VideoList getPersonalizedListOfMovies(userId); def VideoBookmark getBookmark(userId, videoId); def VideoRating getRating(userId, videoId); def VideoMetadata getMetadata(videoId); } ...
+    <footer>
+        <a href='http://rejasupotaro.github.io/posts/2014/05/11/47/'><nobr>Read more →</nobr></a>
+    </footer>
+</article>
+
+            
+          </div>
+        </section>
+
+    </div>
+  </div>
+
+  <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+  
+  
+
+<div class="container content">
+<footer>
+  <div>
+    <p class="right credit">
+    Fancy footer here. Link to <a href="http://rejasupotaro.github.io/">Home Page</a>
+    </p>
+  </div>
+</footer>
+</div>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-36732392-2', 'sglyon.com');
+  ga('send', 'pageview');
+
+</script>
+
+
+</body>
+</html>
+
+
+
+

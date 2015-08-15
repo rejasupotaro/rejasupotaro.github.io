@@ -1,0 +1,1409 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Android on Rejasupoem</title>
+    <link>http://rejasupotaro.github.io/categories/android/</link>
+    <description>Recent content in Android on Rejasupoem</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+    
+    
+    <lastBuildDate>Sat, 15 Aug 2015 00:00:00 UT</lastBuildDate>
+    <atom:link href="http://rejasupotaro.github.io/categories/android/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Heartless code review</title>
+      <link>http://rejasupotaro.github.io/posts/2015/08/15/63/</link>
+      <pubDate>Sat, 15 Aug 2015 00:00:00 UT</pubDate>
+      
+      <guid>http://rejasupotaro.github.io/posts/2015/08/15/63/</guid>
+      <description>&lt;p&gt;I talked about code review at &lt;a href=&#34;https://github.com/potatotips/potatotips/wiki/potatotips-20&#34;&gt;potatotips #20&lt;/a&gt;.&lt;/p&gt;
+
+&lt;script async class=&#34;speakerdeck-embed&#34; data-id=&#34;6f99977c598943dbb33f0e2987382d39&#34; data-ratio=&#34;1.77777777777778&#34; src=&#34;//speakerdeck.com/assets/embed.js&#34;&gt;&lt;/script&gt;
+
+&lt;p&gt;Sometimes I think that code review is not only for code but also for human.
+If bots can review code completely, reviewing code by human has value.&lt;/p&gt;
+
+&lt;p&gt;My FindBugs&amp;rsquo; setting is below.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;// FindBugs - Gradle DSL Version 2.5 https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.FindBugs.html
+apply plugin: &#39;findbugs&#39;
+
+task findbugs(type: FindBugs, dependsOn: assembleDebug) {
+    description &#39;Run findbugs&#39;
+    group &#39;verification&#39;
+
+    classes = fileTree(dir: rootProject.projectDir,
+            includes: [&#39;*/build/intermediates/classes/**/*.class&#39;],
+            exclude: &#39;**/*test*/**&#39;)
+
+    source = fileTree(dir: rootProject.projectDir,
+            includes: [&#39;*/src/**/java/com/app/**/*.java&#39;],
+            exclude: &#39;**/*test*/**&#39;)
+
+    classpath = files()
+
+    excludeFilter = file(&amp;quot;$rootProject.projectDir/gradle/findbugs/exclude.xml&amp;quot;)
+
+    def report = &amp;quot;xml&amp;quot; // default output format is xml
+    if (project.hasProperty(&amp;quot;report&amp;quot;)) {
+        report = project.getProperty(&amp;quot;report&amp;quot;)
+    }
+
+    switch (report) {
+        case &amp;quot;xml&amp;quot;:
+            reports {
+                xml.enabled = true
+                xml.withMessages = true
+                html.enabled = false
+            }
+            break
+        case &amp;quot;html&amp;quot;:
+            reports {
+                xml.enabled = false
+                xml.withMessages = false
+                html.enabled = true
+            }
+            break
+        default:
+            throw new IllegalArgumentException(&amp;quot;Undefined report format is specified: &amp;quot; + report)
+    }
+
+    effort = &#39;max&#39;
+    reportLevel = &#39;low&#39;
+
+    ignoreFailures = true
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-xml&#34;&gt;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt;
+&amp;lt;FindBugsFilter&amp;gt;
+    &amp;lt;Match&amp;gt;
+        &amp;lt;Class name=&amp;quot;~.*BuildConfig.*&amp;quot; /&amp;gt;
+    &amp;lt;/Match&amp;gt;
+    &amp;lt;Match&amp;gt;
+        &amp;lt;Class name=&amp;quot;~.*R\$.*&amp;quot; /&amp;gt;
+    &amp;lt;/Match&amp;gt;
+    &amp;lt;Match&amp;gt;
+        &amp;lt;Class name=&amp;quot;~.*\$\$ViewBinder.*&amp;quot; /&amp;gt;
+    &amp;lt;/Match&amp;gt;
+    &amp;lt;Match&amp;gt;
+        &amp;lt;Class name=&amp;quot;~.*\.*Test&amp;quot; /&amp;gt;
+        &amp;lt;Not&amp;gt;
+            &amp;lt;Bug code=&amp;quot;IJU&amp;quot; /&amp;gt;
+        &amp;lt;/Not&amp;gt;
+    &amp;lt;/Match&amp;gt;
+    &amp;lt;Bug code=&amp;quot;SIC,UPM,UrF,UwF,&amp;quot; /&amp;gt;
+&amp;lt;/FindBugsFilter&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Android StudioでのLombokの導入手順と対応状況</title>
+      <link>http://rejasupotaro.github.io/posts/2014/04/30/45/</link>
+      <pubDate>Wed, 30 Apr 2014 00:00:00 UT</pubDate>
+      
+      <guid>http://rejasupotaro.github.io/posts/2014/04/30/45/</guid>
+      <description>
+
+&lt;h1 id=&#34;lombokとは:612c57d5978407866131a3d9de00f820&#34;&gt;Lombokとは&lt;/h1&gt;
+
+&lt;p&gt;&lt;em&gt;Very spicy additions to the Java programming language.&lt;/em&gt; &lt;a href=&#34;https://github.com/rzwitserloot/lombok&#34;&gt;★&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://blog-imgs-26.fc2.com/s/2/9/s29fan/tg07P3041222a.jpg&#34; alt=&#34;&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;ビルド時にAST変換をしてメソッドを生やしたり後処理を追加したり、便利なコードを自動生成する（ソースコードを書き出すのではなく生成されるバイナリを書き換える）ライブラリです。&lt;/p&gt;
+
+&lt;h1 id=&#34;導入手順:612c57d5978407866131a3d9de00f820&#34;&gt;導入手順&lt;/h1&gt;
+
+&lt;h3 id=&#34;1-build-gradleのdependenciesに追加します:612c57d5978407866131a3d9de00f820&#34;&gt;1. build.gradleのdependenciesに追加します&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;provided &#39;org.projectlombok:lombok:1.12.2&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;2-preferences-plugins-browse-repositories-lombok-plugin-をインストールします:612c57d5978407866131a3d9de00f820&#34;&gt;2. Preferences &amp;gt; Plugins &amp;gt; Browse Repositories &amp;gt; Lombok Plugin をインストールします&lt;/h3&gt;
+
+&lt;p&gt;プラグインがなくてもビルドはできますが、入れないと警告が出たり定義にジャンプしたりできないので入れます。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://dl.dropboxusercontent.com/u/54255753/blog/201404/lombok_intellij_plugin.png&#34; width=&#34;480&#34;&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;androidアプリ開発で使えそうなもの-行数は目安です:612c57d5978407866131a3d9de00f820&#34;&gt;Androidアプリ開発で使えそうなもの（行数は目安です）&lt;/h1&gt;
+
+&lt;h2 id=&#34;data:612c57d5978407866131a3d9de00f820&#34;&gt;@Data&lt;/h2&gt;
+
+&lt;p&gt;Getter、Setter、ConstructorおよびtoString、equals、hashCodeの自動生成を行う&lt;/p&gt;
+
+&lt;h3 id=&#34;ビルド前-5行:612c57d5978407866131a3d9de00f820&#34;&gt;ビルド前（5行）&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Data
+public class DataExample {
+    private final String name;
+    @Setter(AccessLevel.PACKAGE) private int age;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;ビルド後-45行:612c57d5978407866131a3d9de00f820&#34;&gt;ビルド後（45行）&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class DataExample {
+    private final String name;
+    private int age;
+
+    public DataExample(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    void setAge(int age) {
+        this.age = age;
+    }
+
+    public int getAge() {
+        return this.age;
+    }
+
+    @Override
+    public String toString() {
+        return &amp;quot;DataExample(&amp;quot; + this.getName() + &amp;quot;, &amp;quot; + this.getAge() + &amp;quot;)&amp;quot;;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (!(o instanceof DataExample)) return false;
+        DataExample other = (DataExample) o;
+        if (!other.canEqual((Object)this)) return false;
+        if (this.getName() == null ? other.getName() != null : !this.getName().equals(other.getName())) return false;
+        if (this.getAge() != other.getAge()) return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int PRIME = 59;
+        int result = 1;
+        result = (result*PRIME) + (this.getName() == null ? 0 : this.getName().hashCode());
+        result = (result*PRIME) + this.getAge();
+        return result;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;builder:612c57d5978407866131a3d9de00f820&#34;&gt;@Builder&lt;/h2&gt;
+
+&lt;p&gt;Builderクラスの自動生成を行う。&lt;/p&gt;
+
+&lt;h3 id=&#34;ビルド前-5行-1:612c57d5978407866131a3d9de00f820&#34;&gt;ビルド前（5行）&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Builder
+public class BuilderExample {
+    private String name;
+    private int age;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;ビルド後-39行:612c57d5978407866131a3d9de00f820&#34;&gt;ビルド後（39行）&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class BuilderExample {
+    private String name;
+    private int age;
+
+    BuilderExample(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public static BuilderExampleBuilder builder() {
+        return new BuilderExampleBuilder();
+    }
+
+    public static class BuilderExampleBuilder {
+        private String name;
+        private int age;
+
+        BuilderExampleBuilder() {
+        }
+
+        public BuilderExampleBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public BuilderExampleBuilder age(int age) {
+            this.age = age;
+            return this;
+        }
+
+        public BuilderExample build() {
+            return new BuilderExample(name, age);
+        }
+
+        @java.lang.Override
+        public String toString() {
+            return &amp;quot;BuilderExample.BuilderExampleBuilder(name = &amp;quot; + this.name + &amp;quot;, age = &amp;quot; + this.age + &amp;quot;)&amp;quot;;
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;cleanup:612c57d5978407866131a3d9de00f820&#34;&gt;@Cleanup&lt;/h2&gt;
+
+&lt;p&gt;リソースをクローズするコードの自動生成を行う。&lt;/p&gt;
+
+&lt;h3 id=&#34;ビルド前-12行:612c57d5978407866131a3d9de00f820&#34;&gt;ビルド前（12行）&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class CleanupExample {
+    public static void main(String[] args) throws IOException {
+        @Cleanup InputStream in = new FileInputStream(args[0]);
+        @Cleanup OutputStream out = new FileOutputStream(args[1]);
+        byte[] b = new byte[10000];
+        while (true) {
+            int r = in.read(b);
+            if (r == -1) break;
+            out.write(b, 0, r);
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;ビルド後-24行:612c57d5978407866131a3d9de00f820&#34;&gt;ビルド後（24行）&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class CleanupExample {
+    public static void main(String[] args) throws IOException {
+        InputStream in = new FileInputStream(args[0]);
+        try {
+            OutputStream out = new FileOutputStream(args[1]);
+            try {
+                byte[] b = new byte[10000];
+                while (true) {
+                    int r = in.read(b);
+                    if (r == -1) break;
+                    out.write(b, 0, r);
+                }
+            } finally {
+                if (out != null) {
+                    out.close();
+                }
+            }
+        } finally {
+            if (in != null) {
+                in.close();
+            }
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;val:612c57d5978407866131a3d9de00f820&#34;&gt;val&lt;/h2&gt;
+
+&lt;p&gt;型を省略して再代入不可の変数を宣言できる（Scalaのval相当）
+ビルドはできて実行もできるけどプラグインが対応していなくて唐辛子のように赤い警告が出る。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://dl.dropboxusercontent.com/u/54255753/blog/201404/lombok_val.png&#34; width=&#34;480&#34;&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;intellijプラグインの対応表:612c57d5978407866131a3d9de00f820&#34;&gt;IntelliJプラグインの対応表&lt;/h1&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://dl.dropboxusercontent.com/u/54255753/blog/201404/lombok_intellij_plugin_feature_list.png&#34; width=&#34;480&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Updated Feb 16, 2014&lt;/em&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;所感:612c57d5978407866131a3d9de00f820&#34;&gt;所感&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ライブラリ自体はコンパイル時だけに作用してアプリには含まれないので容量が増えなくてグッド&lt;/li&gt;
+&lt;li&gt;ビルド時間はそんなに気にならなさそう&lt;/li&gt;
+&lt;li&gt;コード量は減るけどIDEのリファクタリングが効かなくなったり、JVMのテストから生成したコードが見えなかったり、未知のバグにハマることがありそう&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;良いか悪いかでいうと、プラマイゼロくらいな気がします。&lt;/p&gt;
+
+&lt;h1 id=&#34;唐辛子について:612c57d5978407866131a3d9de00f820&#34;&gt;唐辛子について&lt;/h1&gt;
+
+&lt;p&gt;韓国人の同僚からキムチは昔はただの漬物だったんだけど、日本から唐辛子が入ってくるようになって今のように辛くなったという話を聞いた。
+なんとなく「唐」って付いてたから中国の四川あたりに生えてたのが韓国に伝わったのかなと思っていたので、へえぇと思って調べてみたら、唐辛子は中南米が原産地で、メキシコでの歴史は紀元前6000年に遡るくらい古くて、15世紀の大航海時代に世界に広まったらしい。
+「唐」っていうのは漠然と「外国」を指す語だったらしい。&lt;/p&gt;
+
+&lt;p&gt;この手の辛いものは殺菌作用が強いので食中毒を防ぐとも言われていて、特に熱い地方で多く使われてたり、また殺菌のほかに害虫を減らす目的で栽培されたり、園芸では虫害を減らす目的で一緒に栽培されることがあったり、鑑賞するための唐辛子の品種もある。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://www.geocities.jp/murayama301/_gl_images_/2.jpg&#34; alt=&#34;&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;観賞用のゴシキトウガラシ&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://www.worldpropertychannel.jp/gallery/5-Cap-Maison-rooftop-pool.jpg&#34; alt=&#34;&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;コロンブスはインドの胡椒を目指して西インド諸島（カリブ）を発見して、そこで見つけた唐辛子を胡椒と勘違いしたまま世界に広まってしまってred pepperとpepperの名称を混乱させたという話もあって、伝来史もおもしろかった。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>AndroidのCIに纏わる諸々の問題</title>
+      <link>http://rejasupotaro.github.io/posts/2013/12/14/26/</link>
+      <pubDate>Sat, 14 Dec 2013 00:00:00 UT</pubDate>
+      
+      <guid>http://rejasupotaro.github.io/posts/2013/12/14/26/</guid>
+      <description>
+
+&lt;p&gt;この投稿は&lt;a href=&#34;http://qiita.com/advent-calendar/2013/android&#34;&gt;Android Advent Calendar 2013&lt;/a&gt;の14日目の記事です。&lt;/p&gt;
+
+&lt;p&gt;昨日、&lt;a href=&#34;http://www.zusaar.com/event/1917003&#34;&gt;Android Test Casual Talks #1&lt;/a&gt;というイベントがありました。
+僕もテストについて&lt;a href=&#34;http://rejasupotaro.github.io/blog/2013/12/14/25/&#34;&gt;何か話す&lt;/a&gt;予定だったのですが、残念ながら体調不良のため行けませんでした。
+それで、ハッシュタグを追って見ていたのですが、現場に入ったときにAndroidにテストを書く文化がなくて驚いたという話がありましたが、今やその状況もだいぶ変わってきていて、会場にいた人の80%の人がJenkinsを導入しているというのはちょっとすごいなと思いました。&lt;/p&gt;
+
+&lt;p&gt;さて、そんなJenkinsですが、弊社では運用についていくつかの悩みを抱えています。
+その悩みと考えている解決策を公開することによって、意見交換したり、何かの参考になればいいなと思います。&lt;/p&gt;
+
+&lt;h1 id=&#34;jenkins-ビルドの設定:1fd210ca6cdfcabc688bd15ea0db40b5&#34;&gt;Jenkins、ビルドの設定&lt;/h1&gt;
+
+&lt;p&gt;弊社のAndroidのJenkinsはawsで&lt;a href=&#34;http://mrkn.hatenablog.com/entry/2013/07/26/172040&#34;&gt;ここ&lt;/a&gt;の1スレーブとして動いています。&lt;/p&gt;
+
+&lt;p&gt;ビルドにはgradleを使っていて、以下の設定で種類ごとにbuildを行なっています。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;buildTypes {
+    debug {
+        debuggable true
+        runProguard false
+        ...
+    }
+    beta {
+        debuggable true
+        runProguard true
+        ...
+    }
+    release {
+        debuggable false
+        runProguard true
+        ...
+    }
+}
+
+productFlavors {
+    staging {}
+    product {}
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;また、gradleはdaemon起動しています。
+ライブラリはs3に認証付きでホストしています。署名の情報もそうですが、キーとシークレットはリポジトリに含められないので、Google Driveに置いて開発者に権限を付与してスクリプトで取得するようにしています。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;repositories {
+    mavenCentral()
+    maven {
+        url &amp;quot;https://${project.s3Bucket}.s3.amazonaws.com/release&amp;quot;
+        credentials {
+            username project.s3Key
+            password project.s3Secret
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;実際のジョブの内容は&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;StagingBetaをassembleする&lt;/li&gt;
+&lt;li&gt;StagingBetaをconnectedInstrumentTestする&lt;/li&gt;
+&lt;li&gt;Lintを走らせる&lt;/li&gt;
+&lt;li&gt;ProductBetaをassembleする&lt;/li&gt;
+&lt;li&gt;DeployGateでProductBetaを配信する&lt;/li&gt;
+&lt;li&gt;HipChatにビルド結果を通知する&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;というようになっています。&lt;/p&gt;
+
+&lt;h1 id=&#34;悩み1-android-emulatorが不安定:1fd210ca6cdfcabc688bd15ea0db40b5&#34;&gt;悩み1. Android Emulatorが不安定&lt;/h1&gt;
+
+&lt;p&gt;プロセスが突然クラッシュして、続くビルドでemulatorがタイムアウトしてしまうことがあります。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Tests on Full Android on x86 Emulator - 2.3.7 failed: Instrumentation run failed due to &#39;Process crashed.&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;[android] Timed-out after waiting 180 seconds for emulator
+Finished: NOT_BUILT
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;テストが悪くて起こることもあるのですが、確率的になることもあり原因がよく分かっていません。
+また、こちらも原因不明なのですが &lt;code&gt;adb -s localhost:47245 shell input keyevent 82&lt;/code&gt; のメッセージを出したまま永遠に返ってこなくなることもあります。
+この前は8時間固まっていてジョブが詰まっていました（その後Build-timeout Pluginでタイムアウト設定をするようにしました）。&lt;/p&gt;
+
+&lt;h1 id=&#34;悩み2-ビルドに時間がかかる:1fd210ca6cdfcabc688bd15ea0db40b5&#34;&gt;悩み2. ビルドに時間がかかる&lt;/h1&gt;
+
+&lt;p&gt;確か最初の頃は一回3分とかで終わっていたと思うのですが、プロジェクトが進んでテストもだんだん増えていって6分くらいになりました。
+Jenkinsではandroid-18（4.3）で、手元ではGenymotionの4.3で動作確認をしていたのですが、ある日Android 2系でアプリを起動するとcompatのコードがinjection周りでクラッシュすることに気付きました。
+開発するときに手元で2系と4系の両方で確認するのは大変なので、Jenkinsでマトリックスビルドするようにしました。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://dl.dropboxusercontent.com/u/54255753/blog/201311/build_matrix.png&#34; alt=&#34;&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;android-10 &amp;amp;&amp;amp; armeabi + android-18 &amp;amp;&amp;amp; armeabi-v7a という構成です。
+ところがこの構成にした途端に、ビルド時間が40分を超えるようになりました。&lt;/p&gt;
+
+&lt;p&gt;{% oembed &lt;a href=&#34;https://twitter.com/rejasupotaro/status/397977669062500352&#34;&gt;https://twitter.com/rejasupotaro/status/397977669062500352&lt;/a&gt; %}&lt;/p&gt;
+
+&lt;p&gt;そこで構成を android-10 &amp;amp;&amp;amp; x86 + android-18 &amp;amp;&amp;amp; x86 に変更しました。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://dl.dropboxusercontent.com/u/54255753/blog/201312/matrix.png&#34; alt=&#34;&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;それで今36分くらいです。
+どちらにせよ長すぎるのでなんとかしたいです。&lt;/p&gt;
+
+&lt;h1 id=&#34;ビルドを安定させる案:1fd210ca6cdfcabc688bd15ea0db40b5&#34;&gt;ビルドを安定させる案&lt;/h1&gt;
+
+&lt;p&gt;Android Emulator Plugin以外のもの使う場合を考えます。&lt;/p&gt;
+
+&lt;h2 id=&#34;robolectricを使う:1fd210ca6cdfcabc688bd15ea0db40b5&#34;&gt;Robolectricを使う&lt;/h2&gt;
+
+&lt;p&gt;実行環境がDalvikじゃないので信頼できるのかというところですが、楽天では4ヶ月使ってみてRobolectric由来の問題にあたったことがないとのことです。
+この手の問題ですが、たとえばDexFileを弄るとか、Androidの環境に依存するようなコードは、ActiveAndroidのようにRobolectricのためのフォールバックの処理を入れる必要があります。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;if (sourcePath != null &amp;amp;&amp;amp; !(new File(sourcePath).isDirectory())) {
+    DexFile dexfile = new DexFile(sourcePath);
+    Enumeration&amp;lt;String&amp;gt; entries = dexfile.entries();
+
+    while (entries.hasMoreElements()) {
+        paths.add(entries.nextElement());
+    }
+}
+// Robolectric fallback
+else {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    Enumeration&amp;lt;URL&amp;gt; resources = classLoader.getResources(&amp;quot;&amp;quot;);
+
+    while (resources.hasMoreElements()) {
+        String path = resources.nextElement().getFile();
+        if (path.contains(&amp;quot;bin&amp;quot;) || path.contains(&amp;quot;classes&amp;quot;)) {
+            paths.add(path);
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;すべてのライブラリがRobolectric対応しているとも限りませんし、うまく動かなかったら自分で直そうという雰囲気を感じます。&lt;/p&gt;
+
+&lt;p&gt;UIのテストをすることになったら実機かEmulatorが必要になるので、Robolectricを使うというのはビルドの安定化というより高速化の方かもしれないと思いました。&lt;/p&gt;
+
+&lt;h2 id=&#34;genymotionを使う:1fd210ca6cdfcabc688bd15ea0db40b5&#34;&gt;Genymotionを使う&lt;/h2&gt;
+
+&lt;p&gt;Genymotionの開発元が&lt;a href=&#34;http://blog.genymobile.com/genymotion-jenkins-android-testing/&#34;&gt;今のところヘッドレスでは動かない&lt;/a&gt;と言ってます。&lt;/p&gt;
+
+&lt;p&gt;ところで弊社のiOS開発はどうしているかというと、社内のmac miniでXcode 5からの新機能のBotsを使ってCIしています。
+なので、Genymotionを使うならawsからmac miniに移す感じになるかなと思います。&lt;/p&gt;
+
+&lt;h2 id=&#34;実機を使う:1fd210ca6cdfcabc688bd15ea0db40b5&#34;&gt;実機を使う&lt;/h2&gt;
+
+&lt;p&gt;Genymotionを使うのとほぼ一緒です。
+mac miniに直接実機を繋ぎます。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://square.github.io/spoon/static/device_cluster.png&#34; width=&#34;360px&#34;&gt;&lt;/p&gt;
+
+&lt;p&gt;ついでに会社の使ってない検証機を繋いでおいて常時テストが走るみたいにしておくと便利かもしれません。&lt;/p&gt;
+
+&lt;h1 id=&#34;ジョブの実行時間の短縮させる案:1fd210ca6cdfcabc688bd15ea0db40b5&#34;&gt;ジョブの実行時間の短縮させる案&lt;/h1&gt;
+
+&lt;h2 id=&#34;ジョブを分割する:1fd210ca6cdfcabc688bd15ea0db40b5&#34;&gt;ジョブを分割する&lt;/h2&gt;
+
+&lt;p&gt;2つのジョブを続けて実行するのに比べるとマトリックスビルドは明らかにオーバーヘッドが大きい（6分 * 2で12分のはずが35分かかってる）ので、マトリックスビルドをやめて環境ごとにジョブを増やします。
+ジョブを二重で管理しないといけなくなるという問題が発生しますが、スクリプトはgitで取ってきたり、ジョブ間の設定の差分を見れるようにするなどすればいいかなと思います。&lt;/p&gt;
+
+&lt;h2 id=&#34;ビルドを速くする:1fd210ca6cdfcabc688bd15ea0db40b5&#34;&gt;ビルドを速くする&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.infoq.com/jp/news/2013/05/Facebook-buck-xctool-build&#34;&gt;FacebookのBuckとxctool&lt;/a&gt; によると、Buckはmavenの10倍ビルドが速いらしいので、たとえばBuckに移行するとか（今のところ考えていませんが）、あるいはGradleがもっと速くなるように&lt;a href=&#34;https://github.com/gradle/gradle/pulls&#34;&gt;コミットする&lt;/a&gt;とかです。&lt;/p&gt;
+
+&lt;p&gt;ただし、全体の実行時間のうちビルド時間が占める割合は小さいので、エミュレータの起動と接続、あるいはテストの高速化にリソースを割いた方が大きな成果が得られると思います。&lt;/p&gt;
+
+&lt;h2 id=&#34;テストを速くする:1fd210ca6cdfcabc688bd15ea0db40b5&#34;&gt;テストを速くする&lt;/h2&gt;
+
+&lt;p&gt;性能の高いインスタンスに乗り換える、Robolectricを使う、Genymotionを使うなどの方法があります。
+そういえばEspressoってUIテストを並列化しているそうですね：&lt;a href=&#34;http://www.infoq.com/jp/news/2013/11/google-espresso-testing&#34;&gt;Google Espresso: Android UI のクラウド型高速自動化テスト&lt;/a&gt;
+ビジネスロジックはRobolectricでUIはEspressoで、みたいになるのでしょうか。&lt;/p&gt;
+
+&lt;h1 id=&#34;まとめ:1fd210ca6cdfcabc688bd15ea0db40b5&#34;&gt;まとめ&lt;/h1&gt;
+
+&lt;p&gt;弊社のCIの悩みと今考えている解決策を書きました。
+安定化に関しても高速化に関してもGenymotionを入れるとひとまず解決する気がするので、awsにいたJenkinsをmac miniに移そうかと思います。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>ActiveAndroidの初期化時間を4分の1にする</title>
+      <link>http://rejasupotaro.github.io/posts/2013/12/05/23/</link>
+      <pubDate>Thu, 05 Dec 2013 00:00:00 UT</pubDate>
+      
+      <guid>http://rejasupotaro.github.io/posts/2013/12/05/23/</guid>
+      <description>
+
+&lt;h1 id=&#34;activeandroidとは:b0c5fe2e1172846fafcbfd89ed49cdef&#34;&gt;ActiveAndroidとは&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.activeandroid.com/&#34;&gt;ActiveAndroid&lt;/a&gt;とは、アクティブレコードパターンのAndroidのORMです。&lt;/p&gt;
+
+&lt;p&gt;こういうクエリーがあったら&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;INSERT INTO Items(id, name) VALUES(NULL, &#39;My Item&#39;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;こう書けます。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;Item item = new Item();
+item.name = &amp;quot;My Item&amp;quot;;
+item.save();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;セレクトするときにこうしていたのは、&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;SELECT * FROM Items;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;このようになります。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;new Select().from(Item.class).execute();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;※公式ドキュメントより&lt;/p&gt;
+
+&lt;p&gt;DBの接続もテーブルの作成もマイグレーションも、なんでもActiveAndroidが面倒を見てくれます！&lt;br /&gt;
+&lt;strong&gt;ん？今なんでもっていったよね？&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;初期化と破棄:b0c5fe2e1172846fafcbfd89ed49cdef&#34;&gt;初期化と破棄&lt;/h1&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class MyApplication extends Application {
+  @Override
+  public void onCreate() {
+    super.onCreate();
+    ActiveAndroid.initialize(this); // ここでなんでもします！
+  }
+  @Override
+  public void onTerminate() {
+    super.onTerminate();
+    ActiveAndroid.dispose();
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;※公式ドキュメントより&lt;/p&gt;
+
+&lt;h1 id=&#34;ボトルネックを探す:b0c5fe2e1172846fafcbfd89ed49cdef&#34;&gt;ボトルネックを探す&lt;/h1&gt;
+
+&lt;p&gt;Traceviewで表示してみる。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://dl.dropboxusercontent.com/u/54255753/blog/201312/traceview.png&#34; alt=&#34;&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;Invocation Countが1でInclusive Timeの80.1%を持っていっている &lt;code&gt;ModelInfo#scanForModel&lt;/code&gt; が重いのでソースを見る。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;private void scanForModel(Context context) throws IOException {
+  String packageName = context.getPackageName();
+  String sourcePath = context.getApplicationInfo().sourceDir;
+  List&amp;lt;String&amp;gt; paths = new ArrayList&amp;lt;String&amp;gt;();
+
+  if (sourcePath != null &amp;amp;&amp;amp; !(new File(sourcePath).isDirectory())) {
+    DexFile dexfile = new DexFile(sourcePath);
+    Enumeration&amp;lt;String&amp;gt; entries = dexfile.entries();
+
+    while (entries.hasMoreElements()) {
+      paths.add(entries.nextElement());
+    }
+  }
+  // Robolectric fallback
+  else {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    Enumeration&amp;lt;URL&amp;gt; resources = classLoader.getResources(&amp;quot;&amp;quot;);
+
+    while (resources.hasMoreElements()) {
+      String path = resources.nextElement().getFile();
+      if (path.contains(&amp;quot;bin&amp;quot;) || path.contains(&amp;quot;classes&amp;quot;)) {
+        paths.add(path);
+      }
+    }
+  }
+
+  for (String path : paths) {
+    File file = new File(path);
+    scanForModelClasses(file, packageName, context.getClassLoader());
+  }
+}
+
+private void scanForModelClasses(File path, String packageName, ClassLoader classLoader) {
+  if (path.isDirectory()) {
+    for (File file : path.listFiles()) {
+      scanForModelClasses(file, packageName, classLoader);
+    }
+  }
+  else {
+    String className = path.getName();
+
+    // Robolectric fallback
+    if (!path.getPath().equals(className)) {
+      className = path.getPath();
+
+      if (className.endsWith(&amp;quot;.class&amp;quot;)) {
+        className = className.substring(0, className.length() - 6);
+      }
+      else {
+        return;
+      }
+
+      className = className.replace(&amp;quot;/&amp;quot;, &amp;quot;.&amp;quot;);
+
+      int packageNameIndex = className.lastIndexOf(packageName);
+      if (packageNameIndex &amp;lt; 0) {
+        return;
+      }
+
+      className = className.substring(packageNameIndex);
+    }
+
+    try {
+      Class&amp;lt;?&amp;gt; discoveredClass = Class.forName(className, false, classLoader);
+      if (ReflectionUtils.isModel(discoveredClass)) {
+        @SuppressWarnings(&amp;quot;unchecked&amp;quot;)
+        Class&amp;lt;? extends Model&amp;gt; modelClass = (Class&amp;lt;? extends Model&amp;gt;) discoveredClass;
+        mTableInfos.put(modelClass, new TableInfo(modelClass));
+      }
+      else if (ReflectionUtils.isTypeSerializer(discoveredClass)) {
+        TypeSerializer instance = (TypeSerializer) discoveredClass.newInstance();
+        mTypeSerializers.put(instance.getDeserializedType(), instance);
+      }
+    }
+    catch (ClassNotFoundException e) {
+      Log.e(&amp;quot;Couldn&#39;t create class.&amp;quot;, e);
+    }
+    catch (InstantiationException e) {
+      Log.e(&amp;quot;Couldn&#39;t instantiate TypeSerializer.&amp;quot;, e);
+    }
+    catch (IllegalAccessException e) {
+      Log.e(&amp;quot;IllegalAccessException&amp;quot;, e);
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;まとめると、&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;DexFileからすべてのクラスパスを抽出して&lt;/li&gt;
+&lt;li&gt;クラスローダーでクラスをロードして&lt;/li&gt;
+&lt;li&gt;対象クラスがModelクラスのサブクラスか判定してTableInfoに渡す&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;などの処理をしています。
+なので、この処理を飛ばすようにします。&lt;/p&gt;
+
+&lt;h1 id=&#34;初期化時間の比較:b0c5fe2e1172846fafcbfd89ed49cdef&#34;&gt;初期化時間の比較&lt;/h1&gt;
+
+&lt;p&gt;&lt;code&gt;Application#onCreate&lt;/code&gt; から &lt;code&gt;MainActivity#onCreate&lt;/code&gt; まで&lt;/p&gt;
+
+&lt;h2 id=&#34;パターン1:b0c5fe2e1172846fafcbfd89ed49cdef&#34;&gt;パターン1&lt;/h2&gt;
+
+&lt;p&gt;ActiveAndroidナシ(比較のため)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class AASampleApplication extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Debug.startMethodTracing(&amp;quot;aasample&amp;quot;);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;パターン2:b0c5fe2e1172846fafcbfd89ed49cdef&#34;&gt;パターン2&lt;/h2&gt;
+
+&lt;p&gt;ActiveAndroid.initialize(Context) で初期化&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class AASampleApplication extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Debug.startMethodTracing(&amp;quot;aasample.before&amp;quot;);
+        ActiveAndroid.initialize(this);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;パターン3:b0c5fe2e1172846fafcbfd89ed49cdef&#34;&gt;パターン3&lt;/h2&gt;
+
+&lt;p&gt;ActiveAndroid#initialize(Configuration) で初期化&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class AASampleApplication extends Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Debug.startMethodTracing(&amp;quot;aasample.after&amp;quot;);
+        Configuration conf = new Configuration.Builder(this)
+                .setModelClasses(User.class)
+                .create();
+        ActiveAndroid.initialize(conf);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;測定結果:b0c5fe2e1172846fafcbfd89ed49cdef&#34;&gt;測定結果&lt;/h1&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://dl.dropboxusercontent.com/u/54255753/blog/201312/initialize.png&#34; alt=&#34;&#34; /&gt;
+&lt;/p&gt;
+
+&lt;h1 id=&#34;まとめ:b0c5fe2e1172846fafcbfd89ed49cdef&#34;&gt;まとめ&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;利便性とパフォーマンスはトレードオフの関係になる場合が多い。&lt;/li&gt;
+&lt;li&gt;ライブラリを読むといいことがある。&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>development, staging, production...</title>
+      <link>http://rejasupotaro.github.io/posts/2013/11/12/20/</link>
+      <pubDate>Tue, 12 Nov 2013 00:00:00 UT</pubDate>
+      
+      <guid>http://rejasupotaro.github.io/posts/2013/11/12/20/</guid>
+      <description>
+
+&lt;h1 id=&#34;環境による設定の切り替えについて:eae282e3e4b12108386442085f9d1a62&#34;&gt;環境による設定の切り替えについて&lt;/h1&gt;
+
+&lt;h2 id=&#34;ウェブアプリケーション開発:eae282e3e4b12108386442085f9d1a62&#34;&gt;ウェブアプリケーション開発&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;development (開発者の手元のPCだったりVMだったり)&lt;/li&gt;
+&lt;li&gt;staging (本番環境と同等の環境)&lt;/li&gt;
+&lt;li&gt;production (本番環境)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;スマートフォンアプリ開発:eae282e3e4b12108386442085f9d1a62&#34;&gt;スマートフォンアプリ開発&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;development (手元でデバッグする用)&lt;/li&gt;
+&lt;li&gt;beta (社内β配信用)&lt;/li&gt;
+&lt;li&gt;release (Google Playにアップロードする用)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;androidでの環境の切り替え:eae282e3e4b12108386442085f9d1a62&#34;&gt;Androidでの環境の切り替え&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;要件
+
+&lt;ul&gt;
+&lt;li&gt;APIのエンドポイントをステージングと本番環境で自動で切り替えたい&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;前提条件
+
+&lt;ul&gt;
+&lt;li&gt;ビルドツールはGradleを使っている&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;解決方法
+
+&lt;ul&gt;
+&lt;li&gt;buildConfigに定数を定義する(buildConfigプロパティに渡したStringが直接Generateされます)&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// build.gradle
+buildTypes {
+    debug {
+        buildConfig &amp;quot;public static final boolean STAGING = true;&amp;quot;
+        debuggable true
+        runProguard false
+    }
+    ...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;/** Automatically generated file. DO NOT MODIFY */
+package com.cookpad.android.activities;
+
+public final class BuildConfig {
+    public static final boolean DEBUG = Boolean.parseBoolean(&amp;quot;true&amp;quot;);
+
+    // lines from build type: debug
+    public static final boolean STAGING = true;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;public class MyApiClient {
+    public static final String endpoint = BuildConfig.STAGING ? &amp;quot;my.staging.server&amp;quot; : &amp;quot;my.service&amp;quot;;
+    ...
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;strong&gt;!!!簡単!!!&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;もうちょっとだけ続きます。&lt;/p&gt;
+
+&lt;h1 id=&#34;実際のビルド環境:eae282e3e4b12108386442085f9d1a62&#34;&gt;実際のビルド環境&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;development (ローカルPCでのビルド、デバッグ用、ステージングを向いてる、ログを出力する、ProGuardは無効、DeployGateは有効、Crashlyticsは無効…)&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;beta (Jenkinsでのビルド、社内β配信用、本番環境を向いてる、ログは出力する、ProGuardは有効、DeployGateは有効、Crashlyticsは無効…)&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;release (Jenkinsでビルド、Google Playにアップロードする用、本番環境を向いている、ProGuardは有効、DeployGateは無効、Crashlyticsは有効…)&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;API、課金周り、その他もろもろで設定項目が多い場合に &lt;code&gt;buildConfig&lt;/code&gt; を使うとファイルが三項演算子だらけになって読みにくくなるので、弊社では &lt;code&gt;buildTypes&lt;/code&gt; と &lt;code&gt;productFlavors&lt;/code&gt; の設定で環境を切り替えています。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;// build.gradle
+buildTypes {
+    debug {
+        debuggable true
+        runProguard false
+    }
+    beta {
+        signingConfig signingConfigs.cookpadConfig
+        debuggable true
+        runProguard true
+        proguardFile getDefaultProguardFile(&#39;proguard-android-optimize.txt&#39;)
+        proguardFile file(&#39;proguard-project-common.txt&#39;)
+        proguardFile file(&#39;proguard-project-beta.txt&#39;)
+    }
+    release {
+        signingConfig signingConfigs.cookpadConfig
+        debuggable false
+        runProguard true
+        proguardFile getDefaultProguardFile(&#39;proguard-android-optimize.txt&#39;)
+        proguardFile file(&#39;proguard-project-common.txt&#39;)
+        proguardFile file(&#39;proguard-project-release.txt&#39;)
+    }
+}
+
+productFlavors {
+    staging {}
+    product {}
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://dl.dropboxusercontent.com/u/54255753/blog/201311/directory_structure.png&#34; alt=&#34;&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;これにOSバージョンが加わると…&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://dl.dropboxusercontent.com/u/54255753/blog/201311/build_matrix.png&#34; alt=&#34;&#34; /&gt;
+&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;buildTypes * productFlavors * OS version * 解像度 = ビルド時間∞
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Jenkinsでビルドが40分超え…&lt;/p&gt;
+
+&lt;p&gt;{% oembed &lt;a href=&#34;https://twitter.com/rejasupotaro/status/397977669062500352&#34;&gt;https://twitter.com/rejasupotaro/status/397977669062500352&lt;/a&gt; %}&lt;/p&gt;
+
+&lt;p&gt;設定を見なおして現在24分。(まだ長い)&lt;/p&gt;
+
+&lt;p&gt;AndroidのテストはGradleで並列化できない。&lt;a href=&#34;http://www.infoq.com/jp/news/2013/11/google-espresso-testing&#34;&gt;Espressoで並列化&lt;/a&gt;？Robolectric使う？(次回以降のポテトチップスで……)&lt;/p&gt;
+
+&lt;h2 id=&#34;まとめ:eae282e3e4b12108386442085f9d1a62&#34;&gt;まとめ&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;buildConfigに書いたStringはそのままソースになります&lt;/strong&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Dependencyを確認する/キャッシュを削除する</title>
+      <link>http://rejasupotaro.github.io/posts/2013/11/10/18/</link>
+      <pubDate>Sun, 10 Nov 2013 00:00:00 UT</pubDate>
+      
+      <guid>http://rejasupotaro.github.io/posts/2013/11/10/18/</guid>
+      <description>
+
+&lt;h1 id=&#34;dependencyを確認する:bbec135fe53a2fe60481f0e57358a7ad&#34;&gt;Dependencyを確認する&lt;/h1&gt;
+
+&lt;p&gt;ビルドしたらNoClassDefFoundErrorと言われた。
+&lt;code&gt;$ gradle :MyProject:dependencies&lt;/code&gt; でパッケージに対象ライブラリが含まれてるか確認できる。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ gradle :Rebuild:dependencies
+Picked up _JAVA_OPTIONS: -Dfile.encoding=UTF-8
+Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0
+:Rebuild:dependencies
+
+------------------------------------------------------------
+Project :Rebuild
+------------------------------------------------------------
+
+_DebugApk
++--- com.android.support:appcompat-v7:18.0.0
+|    \--- com.android.support:support-v4:18.0.0
++--- org.roboguice:roboguice:2.0
+|    \--- com.google.inject:guice:3.0
+|         +--- javax.inject:javax.inject:1
+|         +--- aopalliance:aopalliance:1.0
+|         \--- org.sonatype.sisu.inject:cglib:2.2.1-v20090111
+|              \--- asm:asm:3.1
++--- rejasupotaro:async-rss-client:0.0.3
+|    \--- com.loopj.android:android-async-http:1.4.4
+\--- com.squareup:otto:1.3.2
+
+_DebugCompile
++--- com.android.support:appcompat-v7:18.0.0
+|    \--- com.android.support:support-v4:18.0.0
++--- org.roboguice:roboguice:2.0
+|    \--- com.google.inject:guice:3.0
+|         +--- javax.inject:javax.inject:1
+|         +--- aopalliance:aopalliance:1.0
+|         \--- org.sonatype.sisu.inject:cglib:2.2.1-v20090111
+|              \--- asm:asm:3.1
++--- rejasupotaro:async-rss-client:0.0.3
+|    \--- com.loopj.android:android-async-http:1.4.4
+\--- com.squareup:otto:1.3.2
+
+_ReleaseApk
++--- com.android.support:appcompat-v7:18.0.0
+|    \--- com.android.support:support-v4:18.0.0
++--- org.roboguice:roboguice:2.0
+|    \--- com.google.inject:guice:3.0
+|         +--- javax.inject:javax.inject:1
+|         +--- aopalliance:aopalliance:1.0
+|         \--- org.sonatype.sisu.inject:cglib:2.2.1-v20090111
+|              \--- asm:asm:3.1
++--- rejasupotaro:async-rss-client:0.0.3
+|    \--- com.loopj.android:android-async-http:1.4.4
+\--- com.squareup:otto:1.3.2
+
+_ReleaseCompile
++--- com.android.support:appcompat-v7:18.0.0
+|    \--- com.android.support:support-v4:18.0.0
++--- org.roboguice:roboguice:2.0
+|    \--- com.google.inject:guice:3.0
+|         +--- javax.inject:javax.inject:1
+|         +--- aopalliance:aopalliance:1.0
+|         \--- org.sonatype.sisu.inject:cglib:2.2.1-v20090111
+|              \--- asm:asm:3.1
++--- rejasupotaro:async-rss-client:0.0.3
+|    \--- com.loopj.android:android-async-http:1.4.4
+\--- com.squareup:otto:1.3.2
+
+_TestApk
++--- com.squareup:fest-android:1.0.7
+|    \--- org.easytesting:fest-assert-core:2.0M10
+|         \--- org.easytesting:fest-util:1.2.5
+\--- rejasupotaro:robotgirl:0.0.3
+     \--- com.android.support:support-v4:18.0.0
+
+_TestCompile
++--- com.squareup:fest-android:1.0.7
+|    \--- org.easytesting:fest-assert-core:2.0M10
+|         \--- org.easytesting:fest-util:1.2.5
+\--- rejasupotaro:robotgirl:0.0.3
+     \--- com.android.support:support-v4:18.0.0
+
+apk - Classpath packaged with the compiled main classes.
++--- com.android.support:appcompat-v7:18.0.0
+|    \--- com.android.support:support-v4:18.0.0
++--- org.roboguice:roboguice:2.0
+|    \--- com.google.inject:guice:3.0
+|         +--- javax.inject:javax.inject:1
+|         +--- aopalliance:aopalliance:1.0
+|         \--- org.sonatype.sisu.inject:cglib:2.2.1-v20090111
+|              \--- asm:asm:3.1
++--- rejasupotaro:async-rss-client:0.0.3
+|    \--- com.loopj.android:android-async-http:1.4.4
+\--- com.squareup:otto:1.3.2
+
+archives - Configuration for archive artifacts.
+No dependencies
+
+compile - Classpath for compiling the main sources.
++--- com.android.support:appcompat-v7:18.0.0
+|    \--- com.android.support:support-v4:18.0.0
++--- org.roboguice:roboguice:2.0
+|    \--- com.google.inject:guice:3.0
+|         +--- javax.inject:javax.inject:1
+|         +--- aopalliance:aopalliance:1.0
+|         \--- org.sonatype.sisu.inject:cglib:2.2.1-v20090111
+|              \--- asm:asm:3.1
++--- rejasupotaro:async-rss-client:0.0.3
+|    \--- com.loopj.android:android-async-http:1.4.4
+\--- com.squareup:otto:1.3.2
+
+debugApk - Classpath packaged with the compiled debug classes.
+No dependencies
+
+debugCompile - Classpath for compiling the debug sources.
+No dependencies
+
+default - Configuration for default artifacts.
+No dependencies
+
+instrumentTestApk - Classpath packaged with the compiled instrumentTest classes.
++--- com.squareup:fest-android:1.0.7
+|    \--- org.easytesting:fest-assert-core:2.0M10
+|         \--- org.easytesting:fest-util:1.2.5
+\--- rejasupotaro:robotgirl:0.0.3
+     \--- com.android.support:support-v4:18.0.0
+
+instrumentTestCompile - Classpath for compiling the instrumentTest sources.
++--- com.squareup:fest-android:1.0.7
+|    \--- org.easytesting:fest-assert-core:2.0M10
+|         \--- org.easytesting:fest-util:1.2.5
+\--- rejasupotaro:robotgirl:0.0.3
+     \--- com.android.support:support-v4:18.0.0
+
+releaseApk - Classpath packaged with the compiled release classes.
+No dependencies
+
+releaseCompile - Classpath for compiling the release sources.
+No dependencies
+
+BUILD SUCCESSFUL
+
+Total time: 7.674 secs
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;dependencyのキャッシュを削除する:bbec135fe53a2fe60481f0e57358a7ad&#34;&gt;Dependencyのキャッシュを削除する&lt;/h1&gt;
+
+&lt;p&gt;正確には常にre-downloadするという表現が正しい。
+&lt;code&gt;build.gradle&lt;/code&gt; に以下を追加する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;configurations.all {
+    // check for updates every build
+    resolutionStrategy.cacheChangingModulesFor 0, &#39;seconds&#39;
+}
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>ローカルのaarの参照を参照する</title>
+      <link>http://rejasupotaro.github.io/posts/2013/10/20/15/</link>
+      <pubDate>Sun, 20 Oct 2013 00:00:00 UT</pubDate>
+      
+      <guid>http://rejasupotaro.github.io/posts/2013/10/20/15/</guid>
+      <description>&lt;p&gt;ローカルのaarはjarのように参照することはできない。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;dependencies {
+    compile fileTree(dir: &#39;libs&#39;, include: &#39;*.jar&#39;)
+    compile fileTree(dir: &#39;libs&#39;, include: &#39;*.aar&#39;)
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ので、リポジトリにローカルのlibsディレクトリを登録する。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;repositories {
+    mavenCentral()
+    flatDir {
+        dirs &#39;libs&#39;
+    }
+}
+...
+dependencies {
+    compile &#39;com.rejasupotaro:mylibrary:0.0.1@aar&#39;
+}
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>S3でmavenリポジトリをホストしてGradleでアップロードする</title>
+      <link>http://rejasupotaro.github.io/posts/2013/09/30/10/</link>
+      <pubDate>Mon, 30 Sep 2013 00:00:00 UT</pubDate>
+      
+      <guid>http://rejasupotaro.github.io/posts/2013/09/30/10/</guid>
+      <description>&lt;p&gt;bucket, key, secretは外部ファイルに定義しておきます。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;configurations {
+    deployerJars
+}
+repositories {
+    mavenCentral()
+}
+dependencies {
+    deployerJars &#39;org.springframework.build.aws:org.springframework.build.aws.maven:3.0.0.RELEASE&#39;
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            configuration = configurations.deployerJars
+
+            repository(url: &amp;quot;s3://${project.s3Bucket}/release&amp;quot;) {
+                authentication(userName: project.s3Key, passphrase: project.s3Secret)
+            }
+
+            pom.groupId = &#39;com.rejasupotaro&#39;
+            pom.artifactId = &#39;mylibrary&#39;
+            pom.version = &#39;1.0.0&#39;
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;これで gradle uploadArchives すればアップロードすることができます。&lt;/p&gt;
+
+&lt;p&gt;ライブラリを使う側は以下のようにします。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;repositories {
+    maven {
+        url &amp;quot;https://${project.s3Bucket}.s3.amazonaws.com/release&amp;quot;
+        credentials {
+            username project.s3Key
+            password project.s3Secret
+        }
+    }
+}
+
+dependencies {
+    compile &#39;com.rejasupotaro:mylibrary:1.0.0&#39;
+}
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>モヒートはモッキングフレームワークで味はとても美味しい</title>
+      <link>http://rejasupotaro.github.io/posts/2013/09/19/6/</link>
+      <pubDate>Thu, 19 Sep 2013 00:00:00 UT</pubDate>
+      
+      <guid>http://rejasupotaro.github.io/posts/2013/09/19/6/</guid>
+      <description>
+
+&lt;h1 id=&#34;mojito-モヒート:7c4156473a0d57f79901cf8c5eff898e&#34;&gt;mojito (モヒート)&lt;/h1&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://dl.dropbox.com/u/54255753/blog/201301/mojito.jpg&#34; alt=&#34;&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;モヒートは、キューバ・ハバナ発祥のカクテルの一つ。&lt;br /&gt;
+由来は、新大陸として注目されていたアメリカ諸国から得られる富をコントロールする名目で、英国女王エリザベス1世が、スペイン領の都市を略奪する海賊達の手助けをしていた16世紀後半、海賊フランシス・ドレイクの部下であるリチャード・ドレイクが、1586年にモヒートの前身となる飲み物「ドラケ(draque)」をキューバの人々へ伝えた、という説が有力。&lt;br /&gt;
+ラムをベースにソーダ、ライム、砂糖、ミントを加えたもの。ミントとソーダの清涼感が暑い夏にぴったりな「夏と言えば」の定番カクテル。&lt;/p&gt;
+
+&lt;p&gt;アーネスト・ヘミングウェイが好んで飲んでいた話は有名である。&lt;/p&gt;
+
+&lt;h1 id=&#34;mockito-http-code-google-com-p-mockito-モヒート:7c4156473a0d57f79901cf8c5eff898e&#34;&gt;&lt;a href=&#34;http://code.google.com/p/mockito/&#34;&gt;mockito&lt;/a&gt; (モヒート)&lt;/h1&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://dl.dropbox.com/u/54255753/blog/201301/mockito.jpg&#34; alt=&#34;&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;モヒートは、Javaのモックライブラリ。&lt;br /&gt;
+モックライブラリは他にもいろいろあるけど &lt;a href=&#34;http://code.google.com/p/mockito/wiki/MockitoVSEasyMock&#34;&gt;EasyMockと比べても&lt;/a&gt; mockitoの方が簡潔に書ける。&lt;br /&gt;
+導入するとモヒートを飲んだあとのようにスカッとする。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&amp;ldquo;Mockito is a mocking framework that tastes really good!&amp;rdquo;&lt;/strong&gt; とのこと。(公式)&lt;/p&gt;
+
+&lt;h1 id=&#34;mockitoナシ:7c4156473a0d57f79901cf8c5eff898e&#34;&gt;mockitoナシ&lt;/h1&gt;
+
+&lt;p&gt;今までのやり方。まずモッククラスを定義して、&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;import com.android.volley.Network;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
+
+public class MockNetwork implements Network {
+    private byte[] mFakeResponseData = null;
+
+    public void setFakeResponseData(byte[] data) {
+        mFakeResponseData = data;
+    }
+
+    @Override
+    public NetworkResponse performRequest(Request&amp;lt;?&amp;gt; request) throws VolleyError {
+        return new NetworkResponse(mFakeResponseData);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;テストするときに返したいデータをセットする。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;MockNetwork mockNetwork = new MockNetwork();
+mockNetwork.setFakeResponseData(&amp;quot;{\&amp;quot;code\&amp;quot;:200}&amp;quot;.getBytes());
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;mockitoアリ:7c4156473a0d57f79901cf8c5eff898e&#34;&gt;mockitoアリ&lt;/h1&gt;
+
+&lt;p&gt;このメソッドが呼ばれたときにこれを返す、とするだけ。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;Network mockNetwork = mock(Network.class);
+when(mockNetwork.performRequest(any(Request.class))).
+        thenReturn(new NetworkResponse(&amp;quot;{\&amp;quot;code\&amp;quot;:200}&amp;quot;.getBytes()));
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;インタフェースが統一されることによって、次にテストを書く人が「MockNetworkというクラスがあるらしい、ふむふむ、setFakeResponseDataに渡したbyte列がperformRequestで返ってくるのか」と調べる時間を省くことができる。&lt;/p&gt;
+
+&lt;p&gt;特定のオブジェクトの一部のメソッドの振る舞いを変えるときもカンタン。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;doReturn(new HashMap&amp;lt;String, String&amp;gt;() { { put(&amp;quot;fake&amp;quot;, &amp;quot;foo&amp;quot;); } }).when(spyRequest).getHeaders();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ちなみにdependencyを解決できなかったので、jarを落として ./src/instrumentTest/libs/ に配置して以下のようにした。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;instrumentTestCompile fileTree(dir: &#39;./src/instrumentTest/libs&#39;, include: &#39;*.jar&#39;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;モヒートにギョームでもプライベートでもお世話になってる。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;↑ここまでモヒートの話↑&lt;br /&gt;
+↓ここまで他のフレームワークの紹介↓&lt;/p&gt;
+
+&lt;h1 id=&#34;fest-android-http-square-github-io-fest-android:7c4156473a0d57f79901cf8c5eff898e&#34;&gt;&lt;a href=&#34;http://square.github.io/fest-android/&#34;&gt;Fest Android&lt;/a&gt;&lt;/h1&gt;
+
+&lt;p&gt;安心と信頼の &lt;a href=&#34;https://github.com/square&#34;&gt;Square&lt;/a&gt; 製テストフレームワーク。(Squareが公開してるライブラリは本当にどれもレベルが高い)&lt;br /&gt;
+元ネタは &lt;a href=&#34;http://fest.easytesting.org/&#34;&gt;Fixtures for Easy Software Testing&lt;/a&gt; のAndroid拡張となっている。&lt;/p&gt;
+
+&lt;h3 id=&#34;regular-junit:7c4156473a0d57f79901cf8c5eff898e&#34;&gt;REGULAR JUNIT&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;assertEquals(View.VISIBLE, layout.getVisibility());
+assertEquals(VERTICAL, layout.getOrientation());
+assertEquals(4, layout.getChildCount());
+assertEquals(SHOW_DIVIDERS_MIDDLE, layout.getShowDividers());
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;fest-android:7c4156473a0d57f79901cf8c5eff898e&#34;&gt;FEST ANDROID&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;assertThat(layout).isVisible()
+    .isVertical()
+    .hasChildCount(4)
+    .hasShowDividers(SHOW_DIVIDERS_MIDDLE);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;calculon-https-github-com-mttkay-calculon:7c4156473a0d57f79901cf8c5eff898e&#34;&gt;&lt;a href=&#34;https://github.com/mttkay/calculon&#34;&gt;calculon&lt;/a&gt;&lt;/h1&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.github.com/mttkay/calculon/master/assets/calculon.png&#34; alt=&#34;&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;こちらも便利メソッドを提供している。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;// direct assertion on current activity
+assertThat().inPortraitMode();
+assertThat().viewExists(R.id.launch_bar_button);
+
+// assert specific condition on current activity
+    assertThat().satisfies(new Predicate&amp;lt;Activity&amp;gt;() {
+    public boolean check(Activity target) {
+        return target.isTaskRoot();
+    }
+});
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Fest Androidとの違いは、calculonはStoryTestを提供しており、画面遷移を伴うストーリーをテストとして実行することができる。&lt;/p&gt;
+
+&lt;h1 id=&#34;robolectric-spock:7c4156473a0d57f79901cf8c5eff898e&#34;&gt;Robolectric + Spock&lt;/h1&gt;
+
+&lt;p&gt;この動画で紹介されているGroovyの元祖PowerAssert系テストフレームワーク &lt;a href=&#34;https://code.google.com/p/spock/&#34;&gt;Spock&lt;/a&gt; を頑張ってAndroidで動かすというもの。&lt;/p&gt;
+
+&lt;iframe width=&#34;420&#34; height=&#34;315&#34; src=&#34;//www.youtube.com/embed/aDoQxqO_6rI&#34; frameborder=&#34;0&#34; allowfullscreen&gt;&lt;/iframe&gt;
+
+&lt;p&gt;RobolectricはAndroidのテストをJVM上で実行するためのフレームワークで、AndroidのクラスをJavaのShadowクラスに変換して実行するしくみになっている。
+JVMでテストが実行できるようになるということは、Groovyでもテストが書けるということなので、Robolectricを導入すればSpockも使えるようになる。&lt;/p&gt;
+
+&lt;h3 id=&#34;robolectric:7c4156473a0d57f79901cf8c5eff898e&#34;&gt;Robolectric&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;@Test
+public void testDialogContent() {
+    // given
+    final MainActivity mainActivity = new MainActivity();
+    mainActivity.onCreate(null);
+
+    // when
+    mainActivity.button.performClick();
+
+    // then
+    final ShadowAlertDialog dialog = (ShadowAlertDialog) Robolectric.shadowOf(ShadowDialog.getLatestDialog());
+    Assert.assertEquals(&amp;quot;title&amp;quot;, dialog.getTitle());
+    Assert.assertEquals(&amp;quot;Ok&amp;quot;, dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText());
+    Assert.assertEquals(&amp;quot;Cancel&amp;quot;, dialog.getButton(AlertDialog.BUTTON_NEGATIVE).getText());
+    Assert.assertEquals(&amp;quot;Dismiss&amp;quot;, dialog.getButton(AlertDialog.BUTTON_NEUTRAL).getText());
+    Assert.assertEquals(&amp;quot;Dialog Content&amp;quot;, dialog.getMessage());
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;robolectric-spock-1:7c4156473a0d57f79901cf8c5eff898e&#34;&gt;Robolectric + Spock&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-groovy&#34;&gt;def &amp;quot;should displayed dialog&#39;s button has good text&amp;quot;() {
+    given:
+    def mainActivity = new MainActivity()
+    mainActivity.onCreate(null)
+
+    when:
+    mainActivity.button.performClick()
+    def dialog = (ShadowAlertDialog) Robolectric.shadowOf(ShadowDialog.getLatestDialog());
+
+    then:
+    dialog.getButton(number).text == value
+
+    where:
+    number                      | value
+    AlertDialog.BUTTON_POSITIVE | &amp;quot;Ok&amp;quot;
+    AlertDialog.BUTTON_NEGATIVE | &amp;quot;Cancel&amp;quot;
+    AlertDialog.BUTTON_NEUTRAL  | &amp;quot;Dismiss&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;導入コスト、学習コスト、効果を鑑みつつ、引き続きテスティングフレームワークをテイスティングしていきます。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>aar dependency</title>
+      <link>http://rejasupotaro.github.io/posts/2013/07/27/3/</link>
+      <pubDate>Sat, 27 Jul 2013 00:00:00 UT</pubDate>
+      
+      <guid>http://rejasupotaro.github.io/posts/2013/07/27/3/</guid>
+      <description>&lt;p&gt;Android StudioでLibrary Projectを参照するのにソースコードを修正するたびにjarで固めてlibsに入れてもいいのですが、
+面倒だしバージョン管理もしたいので調べてたらGitHubをmavenrepoにしてbuild.gradleにdependencyを書いてaarを読み込めることが分かった。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://u1aryz.blogspot.jp/2013/06/githubmavenandroidaar.html&#34;&gt;githubをMavenリポジトリとしてAndroidライブラリプロジェクト(aar)をデプロイして使用する&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Library Projectの対象moduleのbuild.gradleを以下のように変更。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath &#39;com.android.tools.build:gradle:0.5.+&#39;
+    }
+}
+apply plugin: &#39;android-library&#39;
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile &#39;com.android.support:support-v4:13.0.+&#39;
+}
+
+android {
+    compileSdkVersion 17
+    buildToolsVersion &amp;quot;17.0.0&amp;quot;
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 16
+    }
+}
+
+apply plugin: &#39;maven&#39;
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository url: &amp;quot;file://${projectDir}/repository&amp;quot;
+            pom.groupId = &#39;com.rejasupotaro&#39;
+            pom.artifactId = &#39;rejasupo-commons&#39;
+            pom.version = &#39;0.0.1&#39;
+        }
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;参照するプロジェクトのbuild.gradleにdependencyを追加。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;repositories {
+    maven { url &#39;https://raw.github.com/takiguchi0817/rejasupo-commons/master/rejasupo-commons/repository&#39; }
+}
+
+dependencies {
+    compile &#39;com.rejasupotaro:rejasupo-commons:0.0.1&#39;
+}
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

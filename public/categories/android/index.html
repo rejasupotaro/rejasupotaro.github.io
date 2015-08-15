@@ -1,0 +1,253 @@
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <base href="http://rejasupotaro.github.io">
+    <title> Android </title>
+    <link rel="canonical" href="http://rejasupotaro.github.io/categories/android/">
+    
+
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/poole.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/syntax.css">
+<link rel="stylesheet" href="http://rejasupotaro.github.io/css/lanyon.css">
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+</head>
+
+
+<body class="theme-base-08">
+  
+
+
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+
+<div class="sidebar" id="sidebar">
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/">Home</a>
+
+    <a class="sidebar-nav-item" href="http://rejasupotaro.github.io/posts">Blog</a>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2014 Spencer Lyon. Powered by <a href="http://hugo.spf13.com">Hugo</a>. Design adapted from <a href="http://lanyon.getpoole.com">Lanyon</a>.
+    </p>
+  </div>
+</div>
+
+
+  
+  <div class="wrap">
+    <div class="masthead">
+      <div class="container">
+        <h3 class="masthead-title">
+          <a href="http://rejasupotaro.github.io/posts" title="Blog">Blog Posts</a>
+        </h3>
+      </div>
+    </div>
+
+  
+    <div class="container content">
+      <h1 class="post-title">Recent Posts</h1>
+        <section id="main">
+          <div>
+            <h5><a href="http://rejasupotaro.github.io/categories">Full Category Index</a></h5>
+            <h2>Posts in &ldquo;Android&rdquo;</h2>
+            
+            
+
+<article class="post">
+    <header>
+      <h2><a href='http://rejasupotaro.github.io/posts/2015/08/15/63/'> Heartless code review</a> </h2>
+      <div class="meta">Sat, Aug 15, 2015</div>
+    </header>
+
+    I talked about code review at potatotips #20. Sometimes I think that code review is not only for code but also for human. If bots can review code completely, reviewing code by human has value. My FindBugs&rsquo; setting is below. // FindBugs - Gradle DSL Version 2.5 https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.FindBugs.html apply plugin: 'findbugs' task findbugs(type: FindBugs, dependsOn: assembleDebug) { description 'Run findbugs' group 'verification' classes = fileTree(dir: rootProject.projectDir, includes: ['*/build/intermediates/classes/**/*.class'], exclude: '**/*test*/**')
+    <footer>
+        <a href='http://rejasupotaro.github.io/posts/2015/08/15/63/'><nobr>Read more →</nobr></a>
+    </footer>
+</article>
+
+            
+            
+
+<article class="post">
+    <header>
+      <h2><a href='http://rejasupotaro.github.io/posts/2014/04/30/45/'> Android StudioでのLombokの導入手順と対応状況</a> </h2>
+      <div class="meta">Wed, Apr 30, 2014</div>
+    </header>
+
+    Lombokとは Very spicy additions to the Java programming language. ★ ビルド時にAST変換をしてメソッドを生やしたり後処理を追加したり、便利なコードを自動生成する（ソースコードを書き出すのではなく生成されるバイナリを書き換える）ライブラリです。 導入手順 1. build.gradleのdependenciesに追加します provided 'org.projectlombok:lombok:1.12.2' 2. Preferences &gt; Plugins &gt; Browse Repositories &gt; Lombok Plugin をインストールします プラグインがなくてもビルドはできますが、入れないと警告が出たり定義にジャンプしたりできないので入れます。 Androidアプリ開発で使えそうなもの（行数は目安です） @Data Getter、Setter、ConstructorおよびtoString、equals、hashCodeの自動生成を行う ビルド前（5行） @Data public class DataExample { private final String name; @Setter(AccessLevel.PACKAGE) private int age; } ビルド後（45行） public class DataExample { private final String name; private int age; public DataExample(String name) { this.name = name; } public String getName() { return this.name; } void setAge(int age) { this.age = age; } public int getAge() { return this.age; } @Override public String toString() { return &quot;DataExample(&quot; + this.getName() + &quot;, &quot; + this.getAge() + &quot;)&quot;; } @Override public boolean equals(Object o) { if (o == this) return true; if (!(o instanceof DataExample)) return false; DataExample other = (DataExample) o; if (!other.canEqual((Object)this)) return false; if (this.getName() == null ?
+    <footer>
+        <a href='http://rejasupotaro.github.io/posts/2014/04/30/45/'><nobr>Read more →</nobr></a>
+    </footer>
+</article>
+
+            
+            
+
+<article class="post">
+    <header>
+      <h2><a href='http://rejasupotaro.github.io/posts/2013/12/14/26/'> AndroidのCIに纏わる諸々の問題</a> </h2>
+      <div class="meta">Sat, Dec 14, 2013</div>
+    </header>
+
+    この投稿はAndroid Advent Calendar 2013の14日目の記事です。 昨日、Android Test Casual Talks #1というイベントがありました。 僕もテストについて何か話す予定だったのですが、残念ながら体調不良のため行けませんでした。 それで、ハッシュタグを追って見ていたのですが、現場に入ったときにAndroidにテストを書く文化がなくて驚いたという話がありましたが、今やその状況もだいぶ変わってきていて、会場にいた人の80%の人がJenkinsを導入しているというのはちょっとすごいなと思いました。 さて、そんなJenkinsですが、弊社では運用についていくつかの悩みを抱えています。 その悩みと考えている解決策を公開することによって、意見交換したり、何かの参考になればいいなと思います。 Jenkins、ビルドの設定 弊社のAndroidのJenkinsはawsでここの1スレーブとして動いています。 ビルドにはgradleを使っていて、以下の設定で種類ごとにbuildを行なっています。 buildTypes { debug { debuggable true runProguard false ... } beta { debuggable true runProguard true ... } release { debuggable false runProguard true ... } } productFlavors { staging {} product {} } また、gradleはdaemon起動しています。 ライブラリはs3に認証付きでホストしています。署名の情報もそうですが、キーとシークレットはリポジトリに含められないので、Google Driveに置いて開発者に権限を付与してスクリプトで取得するようにしています。 repositories { mavenCentral() maven { url &quot;https://${project.s3Bucket}.s3.amazonaws.com/release&quot; credentials { username project.s3Key password project.s3Secret } } } 実際のジョブの内容は StagingBetaをassembleする StagingBetaをconnectedInstrumentTestする Lintを走らせる ProductBetaをassembleする DeployGateでProductBetaを配信する HipChatにビルド結果を通知する というようになっています。 悩み1.
+    <footer>
+        <a href='http://rejasupotaro.github.io/posts/2013/12/14/26/'><nobr>Read more →</nobr></a>
+    </footer>
+</article>
+
+            
+            
+
+<article class="post">
+    <header>
+      <h2><a href='http://rejasupotaro.github.io/posts/2013/12/05/23/'> ActiveAndroidの初期化時間を4分の1にする</a> </h2>
+      <div class="meta">Thu, Dec 5, 2013</div>
+    </header>
+
+    ActiveAndroidとは ActiveAndroidとは、アクティブレコードパターンのAndroidのORMです。 こういうクエリーがあったら INSERT INTO Items(id, name) VALUES(NULL, 'My Item'); こう書けます。 Item item = new Item(); item.name = &quot;My Item&quot;; item.save(); セレクトするときにこうしていたのは、 SELECT * FROM Items; このようになります。 new Select().from(Item.class).execute(); ※公式ドキュメントより DBの接続もテーブルの作成もマイグレーションも、なんでもActiveAndroidが面倒を見てくれます！ ん？今なんでもっていったよね？ 初期化と破棄 public class MyApplication extends Application { @Override public void onCreate() { super.onCreate(); ActiveAndroid.initialize(this); // ここでなんでもします！ } @Override public void onTerminate() { super.onTerminate(); ActiveAndroid.dispose(); } } ※公式ドキュメントより ボトルネックを探す Traceviewで表示してみる。 Invocation Countが1でInclusive Timeの80.1%を持っていっている ModelInfo#scanForModel が重いのでソースを見る。 private void scanForModel(Context context) throws IOException { String packageName = context.getPackageName(); String sourcePath = context.getApplicationInfo().sourceDir; List&lt;String&gt; paths = new ArrayList&lt;String&gt;(); if (sourcePath != null &amp;&amp; !(new File(sourcePath).isDirectory())) { DexFile dexfile = new DexFile(sourcePath); Enumeration&lt;String&gt; entries = dexfile.entries(); while (entries.hasMoreElements()) { paths.add(entries.nextElement()); } } // Robolectric fallback else { ClassLoader classLoader = Thread.currentThread().getContextClassLoader(); Enumeration&lt;URL&gt; resources = classLoader.getResources(&quot;&quot;); while (resources.hasMoreElements()) { String path = resources.nextElement().getFile(); if (path.contains(&quot;bin&quot;) || path.contains(&quot;classes&quot;)) { paths.add(path); } } } for (String path : paths) { File file = new File(path); scanForModelClasses(file, packageName, context.getClassLoader()); } } private void scanForModelClasses(File path, String packageName, ClassLoader classLoader) { if (path.isDirectory()) { for (File file : path.listFiles()) { scanForModelClasses(file, packageName, classLoader); } } else { String className = path.getName(); // Robolectric fallback if (!path.getPath().equals(className)) { className = path.getPath(); if (className.endsWith(&quot;.class&quot;)) { className = className.substring(0, className.length() - 6); } else { return; } className = className.replace(&quot;/&quot;, &quot;.&quot;); int packageNameIndex = className.lastIndexOf(packageName); if (packageNameIndex &lt; 0) { return; } className = className.substring(packageNameIndex); } try { Class&lt;?&gt; discoveredClass = Class.forName(className, false, classLoader); if (ReflectionUtils.isModel(discoveredClass)) { @SuppressWarnings(&quot;unchecked&quot;) Class&lt;?
+    <footer>
+        <a href='http://rejasupotaro.github.io/posts/2013/12/05/23/'><nobr>Read more →</nobr></a>
+    </footer>
+</article>
+
+            
+            
+
+<article class="post">
+    <header>
+      <h2><a href='http://rejasupotaro.github.io/posts/2013/11/12/20/'> development, staging, production...</a> </h2>
+      <div class="meta">Tue, Nov 12, 2013</div>
+    </header>
+
+    環境による設定の切り替えについて ウェブアプリケーション開発 development (開発者の手元のPCだったりVMだったり) staging (本番環境と同等の環境) production (本番環境) スマートフォンアプリ開発 development (手元でデバッグする用) beta (社内β配信用) release (Google Playにアップロードする用) Androidでの環境の切り替え 要件 APIのエンドポイントをステージングと本番環境で自動で切り替えたい 前提条件 ビルドツールはGradleを使っている 解決方法 buildConfigに定数を定義する(buildConfigプロパティに渡したStringが直接Generateされます) // build.gradle buildTypes { debug { buildConfig &quot;public static final boolean STAGING = true;&quot; debuggable true runProguard false } ... /** Automatically generated file. DO NOT MODIFY */ package com.cookpad.android.activities; public final class BuildConfig { public static final boolean DEBUG = Boolean.parseBoolean(&quot;true&quot;); // lines from build type: debug public static final boolean STAGING = true; } public class MyApiClient { public static final String endpoint = BuildConfig.STAGING ?
+    <footer>
+        <a href='http://rejasupotaro.github.io/posts/2013/11/12/20/'><nobr>Read more →</nobr></a>
+    </footer>
+</article>
+
+            
+            
+
+<article class="post">
+    <header>
+      <h2><a href='http://rejasupotaro.github.io/posts/2013/11/10/18/'> Dependencyを確認する/キャッシュを削除する</a> </h2>
+      <div class="meta">Sun, Nov 10, 2013</div>
+    </header>
+
+    Dependencyを確認する ビルドしたらNoClassDefFoundErrorと言われた。 $ gradle :MyProject:dependencies でパッケージに対象ライブラリが含まれてるか確認できる。 $ gradle :Rebuild:dependencies Picked up _JAVA_OPTIONS: -Dfile.encoding=UTF-8 Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0 :Rebuild:dependencies ------------------------------------------------------------ Project :Rebuild ------------------------------------------------------------ _DebugApk +--- com.android.support:appcompat-v7:18.0.0 | \--- com.android.support:support-v4:18.0.0 +--- org.roboguice:roboguice:2.0 | \--- com.google.inject:guice:3.0 | +--- javax.inject:javax.inject:1 | +--- aopalliance:aopalliance:1.0 | \--- org.sonatype.sisu.inject:cglib:2.2.1-v20090111 | \--- asm:asm:3.1 +--- rejasupotaro:async-rss-client:0.0.3 | \--- com.loopj.android:android-async-http:1.4.4 \--- com.squareup:otto:1.3.2 _DebugCompile +--- com.android.support:appcompat-v7:18.0.0 | \--- com.android.support:support-v4:18.0.0 +--- org.roboguice:roboguice:2.0 | \--- com.google.inject:guice:3.0 | +--- javax.inject:javax.inject:1 | +--- aopalliance:aopalliance:1.0 | \--- org.sonatype.sisu.inject:cglib:2.2.1-v20090111 | \--- asm:asm:3.1 +--- rejasupotaro:async-rss-client:0.0.3 | \--- com.loopj.android:android-async-http:1.4.4 \--- com.squareup:otto:1.3.2 _ReleaseApk +--- com.android.support:appcompat-v7:18.0.0 | \--- com.android.support:support-v4:18.0.0 +--- org.roboguice:roboguice:2.0 | \--- com.google.inject:guice:3.0 | +--- javax.inject:javax.inject:1 | +--- aopalliance:aopalliance:1.0 | \--- org.sonatype.sisu.inject:cglib:2.2.1-v20090111 | \--- asm:asm:3.1 +--- rejasupotaro:async-rss-client:0.0.3 | \--- com.loopj.android:android-async-http:1.4.4 \--- com.squareup:otto:1.3.2 _ReleaseCompile +--- com.android.support:appcompat-v7:18.0.0 | \--- com.android.support:support-v4:18.0.0 +--- org.roboguice:roboguice:2.0 | \--- com.google.inject:guice:3.0 | +--- javax.inject:javax.inject:1 | +--- aopalliance:aopalliance:1.0 | \--- org.sonatype.sisu.inject:cglib:2.2.1-v20090111 | \--- asm:asm:3.1 +--- rejasupotaro:async-rss-client:0.0.3 | \--- com.loopj.android:android-async-http:1.4.4 \--- com.squareup:otto:1.3.2 _TestApk +--- com.squareup:fest-android:1.0.7 | \--- org.easytesting:fest-assert-core:2.0M10 | \--- org.easytesting:fest-util:1.2.5 \--- rejasupotaro:robotgirl:0.0.3 \--- com.android.support:support-v4:18.0.0 _TestCompile +--- com.squareup:fest-android:1.0.7 | \--- org.easytesting:fest-assert-core:2.0M10 | \--- org.easytesting:fest-util:1.2.5 \--- rejasupotaro:robotgirl:0.0.3 \--- com.android.support:support-v4:18.0.0 apk - Classpath packaged with the compiled main classes.
+    <footer>
+        <a href='http://rejasupotaro.github.io/posts/2013/11/10/18/'><nobr>Read more →</nobr></a>
+    </footer>
+</article>
+
+            
+            
+
+<article class="post">
+    <header>
+      <h2><a href='http://rejasupotaro.github.io/posts/2013/10/20/15/'> ローカルのaarの参照を参照する</a> </h2>
+      <div class="meta">Sun, Oct 20, 2013</div>
+    </header>
+
+    ローカルのaarはjarのように参照することはできない。 dependencies { compile fileTree(dir: 'libs', include: '*.jar') compile fileTree(dir: 'libs', include: '*.aar') } ので、リポジトリにローカルのlibsディレクトリを登録する。 repositories { mavenCentral() flatDir { dirs 'libs' } } ... dependencies { compile 'com.rejasupotaro:mylibrary:0.0.1@aar' }
+    <footer>
+        <a href='http://rejasupotaro.github.io/posts/2013/10/20/15/'><nobr>Read more →</nobr></a>
+    </footer>
+</article>
+
+            
+            
+
+<article class="post">
+    <header>
+      <h2><a href='http://rejasupotaro.github.io/posts/2013/09/30/10/'> S3でmavenリポジトリをホストしてGradleでアップロードする</a> </h2>
+      <div class="meta">Mon, Sep 30, 2013</div>
+    </header>
+
+    bucket, key, secretは外部ファイルに定義しておきます。 configurations { deployerJars } repositories { mavenCentral() } dependencies { deployerJars 'org.springframework.build.aws:org.springframework.build.aws.maven:3.0.0.RELEASE' } uploadArchives { repositories { mavenDeployer { configuration = configurations.deployerJars repository(url: &quot;s3://${project.s3Bucket}/release&quot;) { authentication(userName: project.s3Key, passphrase: project.s3Secret) } pom.groupId = 'com.rejasupotaro' pom.artifactId = 'mylibrary' pom.version = '1.0.0' } } } これで gradle uploadArchives すればアップロードすることができます。 ライブラリを使う側は以下のようにします。 repositories { maven { url &quot;https://${project.s3Bucket}.s3.amazonaws.com/release&quot; credentials { username project.s3Key password project.s3Secret } } } dependencies { compile 'com.rejasupotaro:mylibrary:1.0.0' }
+    <footer>
+        <a href='http://rejasupotaro.github.io/posts/2013/09/30/10/'><nobr>Read more →</nobr></a>
+    </footer>
+</article>
+
+            
+            
+
+<article class="post">
+    <header>
+      <h2><a href='http://rejasupotaro.github.io/posts/2013/09/19/6/'> モヒートはモッキングフレームワークで味はとても美味しい</a> </h2>
+      <div class="meta">Thu, Sep 19, 2013</div>
+    </header>
+
+    mojito (モヒート) モヒートは、キューバ・ハバナ発祥のカクテルの一つ。 由来は、新大陸として注目されていたアメリカ諸国から得られる富をコントロールする名目で、英国女王エリザベス1世が、スペイン領の都市を略奪する海賊達の手助けをしていた16世紀後半、海賊フランシス・ドレイクの部下であるリチャード・ドレイクが、1586年にモヒートの前身となる飲み物「ドラケ(draque)」をキューバの人々へ伝えた、という説が有力。 ラムをベースにソーダ、ライム、砂糖、ミントを加えたもの。ミントとソーダの清涼感が暑い夏にぴったりな「夏と言えば」の定番カクテル。 アーネスト・ヘミングウェイが好んで飲んでいた話は有名である。 mockito (モヒート) モヒートは、Javaのモックライブラリ。 モックライブラリは他にもいろいろあるけど EasyMockと比べても mockitoの方が簡潔に書ける。 導入するとモヒートを飲んだあとのようにスカッとする。 &ldquo;Mockito is a mocking framework that tastes really good!&rdquo; とのこと。(公式) mockitoナシ 今までのやり方。まずモッククラスを定義して、 import com.android.volley.Network; import com.android.volley.NetworkResponse; import com.android.volley.Request; import com.android.volley.VolleyError; public class MockNetwork implements Network { private byte[] mFakeResponseData = null; public void setFakeResponseData(byte[] data) { mFakeResponseData = data; } @Override public NetworkResponse performRequest(Request&lt;?&gt; request) throws VolleyError { return new NetworkResponse(mFakeResponseData); } } テストするときに返したいデータをセットする。 MockNetwork mockNetwork = new MockNetwork(); mockNetwork.setFakeResponseData(&quot;{\&quot;code\&quot;:200}&quot;.getBytes()); mockitoアリ このメソッドが呼ばれたときにこれを返す、とするだけ。 Network mockNetwork = mock(Network.class); when(mockNetwork.performRequest(any(Request.class))).
+    <footer>
+        <a href='http://rejasupotaro.github.io/posts/2013/09/19/6/'><nobr>Read more →</nobr></a>
+    </footer>
+</article>
+
+            
+            
+
+<article class="post">
+    <header>
+      <h2><a href='http://rejasupotaro.github.io/posts/2013/07/27/3/'> aar dependency</a> </h2>
+      <div class="meta">Sat, Jul 27, 2013</div>
+    </header>
+
+    Android StudioでLibrary Projectを参照するのにソースコードを修正するたびにjarで固めてlibsに入れてもいいのですが、 面倒だしバージョン管理もしたいので調べてたらGitHubをmavenrepoにしてbuild.gradleにdependencyを書いてaarを読み込めることが分かった。 githubをMavenリポジトリとしてAndroidライブラリプロジェクト(aar)をデプロイして使用する Library Projectの対象moduleのbuild.gradleを以下のように変更。 buildscript { repositories { mavenCentral() } dependencies { classpath 'com.android.tools.build:gradle:0.5.+' } } apply plugin: 'android-library' repositories { mavenCentral() } dependencies { compile 'com.android.support:support-v4:13.0.+' } android { compileSdkVersion 17 buildToolsVersion &quot;17.0.0&quot; defaultConfig { minSdkVersion 9 targetSdkVersion 16 } } apply plugin: 'maven' uploadArchives { repositories { mavenDeployer { repository url: &quot;file://${projectDir}/repository&quot; pom.groupId = 'com.rejasupotaro' pom.artifactId = 'rejasupo-commons' pom.version = '0.0.1' } } } 参照するプロジェクトのbuild.gradleにdependencyを追加。
+    <footer>
+        <a href='http://rejasupotaro.github.io/posts/2013/07/27/3/'><nobr>Read more →</nobr></a>
+    </footer>
+</article>
+
+            
+          </div>
+        </section>
+
+    </div>
+  </div>
+
+  <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+  
+  
+
+<div class="container content">
+<footer>
+  <div>
+    <p class="right credit">
+    Fancy footer here. Link to <a href="http://rejasupotaro.github.io/">Home Page</a>
+    </p>
+  </div>
+</footer>
+</div>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-36732392-2', 'sglyon.com');
+  ga('send', 'pageview');
+
+</script>
+
+
+</body>
+</html>
+
+
+
+
