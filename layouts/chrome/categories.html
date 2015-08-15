@@ -6,7 +6,7 @@
   <ul class="catlist">
     <li><em>Categories: </em></li>
     {{ range .Params.categories }}
-      <li><a href="/categories/{{ . | urlize }}">{{ . }}</a> </li>
+      <ul><a href="/categories/{{ . | urlize }}">{{ . }}</a></ul>
     {{ end }}
   </ul>
 </div>
