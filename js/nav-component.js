@@ -5,9 +5,56 @@ class NavComponent extends HTMLElement {
 
     async connectedCallback() {
         try {
-            const response = await fetch('components/nav-template.html');
+            // Check if we're running on GitHub Pages
+            const isGitHubPages = window.location.hostname.includes('github.io');
+            const isInPages = window.location.pathname.includes('/pages/');
+            
+            // Calculate paths based on environment
+            let baseUrl = '';
+            let relativePath = isInPages ? '../' : './';
+            
+            if (isGitHubPages) {
+                // For GitHub Pages, include the repository path
+                baseUrl = window.location.pathname.split('/').slice(0, -1).join('/');
+            }
+            
+            // Construct the full path for the template
+            const templatePath = `${baseUrl}${relativePath}components/nav-template.html`;
+            const response = await fetch(templatePath);
             const html = await response.text();
-            this.innerHTML = html;
+            
+            // Create a temporary div to parse the HTML
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            
+            // Get the template content
+            const template = temp.querySelector('#nav-template');
+            if (template) {
+                // Clone the template content and append it
+                const content = template.content.cloneNode(true);
+                
+                // Update all href attributes to use the correct base path
+                const links = content.querySelectorAll('a');
+                links.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href.startsWith('pages/')) {
+                        link.setAttribute('href', `${baseUrl}${relativePath}${href}`);
+                    } else if (href === 'index.html') {
+                        // For the logo link, use the appropriate root path
+                        if (isGitHubPages) {
+                            // On GitHub Pages, go to the repository root
+                            link.setAttribute('href', baseUrl || '/');
+                        } else {
+                            // Locally, go to the current directory
+                            link.setAttribute('href', isInPages ? '../' : './');
+                        }
+                    }
+                });
+                
+                this.appendChild(content);
+            } else {
+                throw new Error('Template not found');
+            }
 
             // Update navigation links based on current page
             const currentPath = window.location.pathname;
