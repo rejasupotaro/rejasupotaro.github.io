@@ -7,13 +7,11 @@
 
 body {
     font-family: "Courier New", "Terminal", "Lucida Console", "Consolas", monospace;
-    line-height: 1.6;
 }
 
 /* Header styles */
 .site-header {
     background-color: #24292e;
-    padding: 1rem 2rem;
     color: white;
 }
 
@@ -23,13 +21,17 @@ body {
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 1rem 2rem;
 }
 
 .logo a {
     color: white;
     text-decoration: none;
     font-size: 1.5rem;
-    font-weight: bold;
+}
+
+.logo a:hover {
+    color: #58a6ff;
 }
 
 .nav-links {
