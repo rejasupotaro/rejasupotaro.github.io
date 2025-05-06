@@ -14,17 +14,12 @@ class NavComponent extends HTMLElement {
             let relativePath = isInPages ? '../' : './';
             
             if (isGitHubPages) {
-                // For GitHub Pages, get the repository path
-                const pathParts = window.location.pathname.split('/');
-                // Remove empty strings and the current page
-                const validParts = pathParts.filter(part => part && !part.includes('.html'));
-                // Reconstruct the base URL
-                baseUrl = validParts.length > 0 ? '/' + validParts.join('/') : '';
+                // For GitHub Pages, include the repository path
+                baseUrl = window.location.pathname.split('/').slice(0, -1).join('/');
             }
             
             // Construct the full path for the template
             const templatePath = `${baseUrl}${relativePath}components/nav-template.html`;
-            console.log('Loading template from:', templatePath); // Debug log
             const response = await fetch(templatePath);
             const html = await response.text();
             
@@ -43,9 +38,7 @@ class NavComponent extends HTMLElement {
                 links.forEach(link => {
                     const href = link.getAttribute('href');
                     if (href.startsWith('pages/')) {
-                        // For GitHub Pages, ensure we have the correct path structure
-                        const pagePath = isGitHubPages ? `${baseUrl}/${href}` : `${baseUrl}${relativePath}${href}`;
-                        link.setAttribute('href', pagePath);
+                        link.setAttribute('href', `${baseUrl}${relativePath}${href}`);
                     } else if (href === 'index.html') {
                         // For the logo link, use the appropriate root path
                         if (isGitHubPages) {
