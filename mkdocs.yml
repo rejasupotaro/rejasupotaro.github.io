@@ -108,7 +108,6 @@ nav:
   - About Me: index.md
   - Blog:
     - blog/index.md
-  - Tags: tags.md
 
 extra:
   social:
