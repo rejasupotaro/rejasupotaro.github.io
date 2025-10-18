@@ -1,3 +1,9 @@
+---
+hide:
+  - navigation # Hides left navigation sidebar
+  - toc # Hides right table of contents
+---
+
 # About Me
 
 Hi, I'm Rejasupotaro!
