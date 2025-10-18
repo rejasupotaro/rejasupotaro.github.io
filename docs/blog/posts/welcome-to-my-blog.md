@@ -4,7 +4,6 @@ authors:
   - rejasupotaro
 categories:
   - Meta
-  - Announcements
 tags:
   - blog
   - welcome
