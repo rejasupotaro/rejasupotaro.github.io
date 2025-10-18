@@ -1,7 +1,7 @@
-site_name: Experiments
+site_name: Rejasupotaro's Blog
 site_url: https://rejasupotaro.github.io/
 site_author: Rejasupotaro
-site_description: A collection of experiments and blog posts
+site_description: Personal blog about anything
 
 theme:
   name: material
@@ -108,9 +108,6 @@ nav:
   - Home: index.md
   - Blog:
     - blog/index.md
-  - Experiments:
-    - Images: experiments/images.md
-    - Texts: experiments/texts.md
   - Tags: tags.md
 
 extra:

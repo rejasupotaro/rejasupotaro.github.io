@@ -1,19 +1,12 @@
-# Welcome to My Experiments
+# Welcome
 
-This is a collection of my experiments, projects, and blog posts.
+Welcome to my blog where I share my thoughts and learnings.
 
 ## About
 
-I explore various topics in technology, development, and creative experiments. This site hosts both my ongoing experiments and blog posts about what I learn along the way.
+I explore various topics in technology, development, and creative experiments. This site hosts my blog posts about what I learn along the way.
 
-## Latest Updates
+## Latest Posts
 
 Check out the [Blog](blog/index.md) for my latest posts and thoughts.
-
-## Experiments
-
-Browse through my experiments:
-
-- [Images](experiments/images.md) - Visual explorations and image experiments
-- [Texts](experiments/texts.md) - Text-based experiments and writing
 
