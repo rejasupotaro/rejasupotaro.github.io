@@ -2,8 +2,6 @@
 date: 2024-10-18
 authors:
   - rejasupotaro
-categories:
-  - Meta
 tags:
   - blog
   - welcome

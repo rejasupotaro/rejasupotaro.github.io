@@ -76,11 +76,10 @@ docs/blog/posts/my-new-post.md
 date: 2024-10-18
 authors:
   - rejasupotaro
-categories:
-  - Technology
 tags:
   - python
   - web
+  - tutorial
 ---
 
 # My Post Title
@@ -96,8 +95,7 @@ Full post content goes here...
 
 - `date`: Publication date (YYYY-MM-DD)
 - `authors`: List of author IDs (defined in `docs/blog/.authors.yml`)
-- `categories`: Post categories
-- `tags`: Post tags
+- `tags`: Post tags (for organization and filtering)
 - `draft: true`: Mark post as draft (won't be published)
 
 ## Deployment
@@ -141,7 +139,7 @@ uv run mkdocs gh-deploy
 
 ## Features
 
-- ✅ Blog with posts, categories, and tags
+- ✅ Blog with posts and tags
 - ✅ RSS feed
 - ✅ Full-text search
 - ✅ Dark/light mode
