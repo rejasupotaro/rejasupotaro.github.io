@@ -8,8 +8,12 @@
   --md-accent-fg-color: #4299E1;
 }
 
-/* Remove shadow from header */
+/* Remove shadow from header and tabs */
 .md-header {
+  box-shadow: none;
+}
+
+.md-tabs {
   box-shadow: none;
 }
 
