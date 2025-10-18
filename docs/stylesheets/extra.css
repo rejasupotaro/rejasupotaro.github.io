@@ -8,9 +8,9 @@
   --md-accent-fg-color: #4299E1;
 }
 
-/* Softer shadows */
+/* Remove shadow from header */
 .md-header {
-  box-shadow: 0 0 0.2rem rgba(0,0,0,.1), 0 0.2rem 0.4rem rgba(0,0,0,.2);
+  box-shadow: none;
 }
 
 /* Customize blog post cards */
