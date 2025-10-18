@@ -20,22 +20,24 @@ theme:
     # Light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
-      accent: indigo
+      primary: cyan
+      accent: teal
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     # Dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
-      accent: indigo
+      primary: cyan
+      accent: teal
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
   font:
-    text: Roboto
-    code: Courier New
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    logo: material/notebook-outline
 
 plugins:
   - search
@@ -112,4 +114,7 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/rejasupotaro
+
+extra_css:
+  - stylesheets/extra.css
 

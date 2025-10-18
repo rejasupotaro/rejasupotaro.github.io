@@ -1,0 +1,48 @@
+/* Custom styling for a more unique look */
+
+/* Customize colors */
+:root > * {
+  --md-primary-fg-color: #2D3748;
+  --md-primary-fg-color--light: #4A5568;
+  --md-primary-fg-color--dark: #1A202C;
+  --md-accent-fg-color: #4299E1;
+}
+
+/* Softer shadows */
+.md-header {
+  box-shadow: 0 0 0.2rem rgba(0,0,0,.1), 0 0.2rem 0.4rem rgba(0,0,0,.2);
+}
+
+/* Customize blog post cards */
+.md-post {
+  border-radius: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.md-post:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+
+/* Custom heading styles */
+.md-typeset h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Make code blocks stand out */
+.md-typeset pre > code {
+  border-radius: 6px;
+}
+
+/* Smooth link underlines */
+.md-typeset a {
+  text-decoration: none;
+  border-bottom: 1px solid var(--md-accent-fg-color);
+  transition: border-color 0.2s;
+}
+
+.md-typeset a:hover {
+  border-bottom-color: transparent;
+}
+
