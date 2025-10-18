@@ -105,7 +105,7 @@ markdown_extensions:
   - pymdownx.tilde
 
 nav:
-  - Home: index.md
+  - About Me: index.md
   - Blog:
     - blog/index.md
   - Tags: tags.md
