@@ -42,4 +42,4 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Blog:
-    - Embedding: posts/embedding-evaluation-survey.md
+    - Embedding Evaluation: posts/embedding-evaluation-survey.md

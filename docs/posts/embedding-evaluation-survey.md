@@ -1,5 +1,5 @@
 ---
-title: Embedding & Retrieval - A Comprehensive Evaluation Survey
+title: Embedding & Retrieval
 summary: A comprehensive evaluation survey of embedding and retrieval systems.
 ---
 
