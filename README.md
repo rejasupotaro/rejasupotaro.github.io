@@ -26,27 +26,40 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 pip install uv
 ```
 
-2. Install dependencies:
+### Quick Start (Makefile)
+
+The project includes a `Makefile` for common operations:
+
+```bash
+# Install dependencies
+make sync
+
+# Start development server
+make dev
+
+# Build the site
+make build
+
+# Clean build artifacts
+make clean
+```
+
+### Manual Commands
+
+If you prefer to run commands manually or need specific flags:
+
+1. Install dependencies:
 
 ```bash
 uv sync
 ```
 
-### Local Development
-
-1. Start the development server:
-
+2. Start the development server:
 ```bash
 uv run mkdocs serve
 ```
 
-2. Open your browser to `http://127.0.0.1:8000`
-
-The site will automatically reload when you make changes.
-
-### Managing Dependencies
-
-Add new dependencies:
+3. Manage dependencies:
 
 ```bash
 # Add a package
@@ -113,8 +126,9 @@ The site automatically deploys to GitHub Pages when you push to the `main` branc
 ### Manual Deployment
 
 You can also deploy manually:
-
 ```bash
+make deploy
+# OR
 uv run mkdocs gh-deploy
 ```
 

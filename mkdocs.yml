@@ -16,8 +16,7 @@ theme:
 
 plugins:
   - search
-  - excalidraw
-  - mkdocstrings
+
 
 markdown_extensions:
   admonition:
@@ -41,5 +40,4 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Blog:
-    - Embedding Evaluation: posts/embedding-evaluation-survey.md
+  - Embedding Evaluation: embedding-evaluation-survey.md
