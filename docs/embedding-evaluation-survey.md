@@ -1,5 +1,5 @@
 ---
-title: Embedding Evaluation Survey
+title: Embedding Evaluation
 summary: A survey of embedding and retrieval systems.
 ---
 
@@ -145,20 +145,23 @@ $$ J(A, B) = \frac{A \cap B}{A \cup B} $$
 ## 🧠 Layer 3: Behavioral & Semantic Diagnostics
 Analyze *why* a model fails on specific domains or archetypes.
 
-### 3.1. Behavioral Testing (CheckList for Search)
-**(Ribeiro et al., 2020)**
+### 3.1. Attribute Integrity Benchmarking
+**The "Business Logic" layer.**
 
-We use **Minimum Functionality Tests (MFTs)** to catch specific failure modes like **Attribute Hallucination** or **Negation Failure**.
+Standard nDCG treats all retrieved items as equally "unlabeled" if they aren't in the qrels. However, in e-commerce, some retrievals are objectively wrong based on hard constraints (e.g., retrieving a *Red* phone for a *Blue* query).
 
-#### Implementation
+We define two levels of failure:
+*   **Global Failure Rate (GFR)**: Average mismatch rate across the entire dataset. This is a "North Star" metric for overall system health.
+*   **Explicit Failure Rate (EFR)**: Mismatch rate calculated only on the subset of queries where the user expressed a clear attribute intent (e.g., "Sony battery", "Red dress"). This is the true diagnostic of the model's sensitivity to keywords.
 
-```python
-def test_brand_invariance(model, query="Nike running shoes", brand_a="Nike", brand_b="Adidas"):
-    q1 = query.replace("Nike", brand_a)
-    q2 = query.replace("Nike", brand_b)
-    # Expect similar ranking distribution (high correlation)
-    assert correlation(model.search(q1), model.search(q2)) > 0.9
-```
+#### Dimensional Integrity Metrics
+We decompose EFR into three primary dimensions:
+
+1.  **Color Integrity**: Maps keywords and their Japanese/English synonyms (e.g., `赤`, `レッド`, `red`) into a unified color bucket. A mismatch is triggered if the query contains a color specified *not* found in the product metadata or title.
+2.  **Bilingual Brand Integrity**: Handles compound brand names (e.g., `エーワン(a-one)`). The system canonicalizes either `エーワン` or `a-one` in the query to the same entity, preventing false-positive mismatches due to language variations.
+3.  **Dimension Integrity**: Detects physical measurements (e.g., `128GB`, `500ml`). It uses a value-unit aware regex to ensure that a search for `500ml` doesn't retrieve a `1L` bottle, even if they are semantically similar "containers".
+
+---
 
 ### 3.2. ESCI Implementation & Semantic Gap
 #### Formula
