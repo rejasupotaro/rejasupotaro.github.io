@@ -1,60 +1,98 @@
 ---
-title: Lexical Bias
-summary: Biases in dense retrieval systems.
+title: Lexical Bias in Dense Retrieval
+summary: Diagnosing the "Keyword Matching" trap in vector search systems.
 ---
 
-It is widely believed that vector search (Dense Retrieval) is highly effective for ambiguous queries (sensory queries) that do not contain specific terms, such as "fluffy" or "sophisticated."
-However, it is known that simply fine-tuning a model using existing keyword search (Lexical Search) logs can cause the model to lose its inherent semantic search capabilities and degenerate into a mere "keyword matching model."
+## 🧐 The Paradox of Vector Search
 
-In the field of information retrieval research, this phenomenon is discussed as **Selection Bias** and **Lexical Overlap Bias**.
+Dense Retrieval (Vector Search) is promised to be the "Semantic Savior"—the technology that finally understands user intent beyond literal keywords. It should excel at sensory queries like "sophisticated" or "fluffy" where traditional BM25 fails.
 
-## Why Does Lexical Bias Occur?
+However, a dangerous phenomenon often occurs during fine-tuning: **Lexical Bias (Selection Bias)**. The model "forgets" how to be semantic and degenerates into a high-dimensional keyword matching engine.
 
-In many real-world systems, "click logs of users on results from previous keyword searches (e.g., BM25)" are used as training data. This contains a significant pitfall:
+### Why Lexical Bias Occurs
 
-1. **Restriction of Candidates**: The logs only contain items that were originally displayed in the top results because they "contained the keywords" by BM25 or similar systems.
-2. **Model Overfitting**: If you train on these logs as "ground truth," the model learns that "the presence of query words in the document is the strongest signal of relevance."
-3. **Collapse of Semantic Capability**: As a result, the scores for items that are semantically related but do not contain the specific keywords (which are the original targets for vector search) do not rise.
+In e-commerce, we typically fine-tune models using **click logs** from existing keyword-based systems. This creates a feedback loop:
+1.  **Candidate Restriction**: Logs only contain items that *already* matched the keywords.
+2.  **Reward Overfitting**: The model learns that the presence of query words in the title is the strongest predictor of a "click."
+3.  **Semantic Atrophy**: The model loses the "degrees of freedom" required to map global concepts, as it becomes overly sensitive to sub-word token overlaps.
 
-## Concrete Impacts of the Bias
+---
 
-When this bias occurs, the following "silent failures" are typically observed:
+## 🚨 When Lexical Bias Becomes Critical
 
-- **Failure to Improve Zero-hit Queries**: One of the main reasons to introduce vector search is to handle queries that return zero results in keyword search. A biased model, however, may still prioritize lexical matching and fail to surface semantically relevant items if they don't share exact words.
-- **Vulnerability to Synonyms**: A biased model might fail to rank "blouson" highly for a query "jacket" if it has learned that literal word matching is the primary indicator of success.
-- **Sensitivity to Lexical Noise**: The model may overreact to non-informative terms like "[Free Shipping]" if they frequently appear in clicked items in the training logs.
+Lexical bias isn't always a defect—matching "Nike" for a "Nike" query is good. It becomes a **system failure** in these four regimes:
 
-## Deep Diagnostic Techniques
+1.  **The Zero-Hit Rescue**: When keyword search returns nothing, the vector search is the "last hope." If biased, it will also return nothing or irrelevant noise because it's looking for the same missing keywords.
+2.  **Sensory & Abstract Intent**: Queries like "elegant dress" or "sturdy table" have no single keyword anchor. A biased model misses the "vibe" and only looks for the nouns.
+3.  **Compound Intent Conflict**: In a query like "Apple phone case", a biased model might over-index on "Apple" (the fruit) or "Phone", failing to treat the compound as a single semantic entity.
+4.  **Signal Noise (Metadata Overfitting)**: Models often over-react to frequent tokens like "[Free Shipping]" simply because they appear in many clicked items, regardless of their relevance to the true search intent.
 
-To extract insights from your models and detect bias beyond simple recall metrics, several qualitative techniques are effective:
+---
 
-### 1. Vocabulary Projection
-This technique visualizes what the model "sees" by projecting its query embeddings back into the vocabulary space.
-Normally, a query like "sophisticated" should project to tokens like "elegant" or "refined." If a model has collapsed into lexical matching, it will instead project to subword fragments or exact keywords of the input.
+## 🛠️ The Deep Diagnostic Suite
 
-### 2. Triplet Diagnostic (Contrastive Analysis)
-A direct way to measure bias is to provide the model with a "Conflict Triplet":
-- **Query**: "Sophisticated dress"
-- **Positive (Semantic)**: "Elegant evening gown" (Meaning match, no word overlap)
-- **Negative (Lexical)**: "Adult-like toy" (Word overlap, wrong intent)
+To move beyond black-box metrics like nDCG, we use a 4-tier qualitative diagnostic framework.
 
-A healthy model must yield a higher similarity score for the Positive than the Negative. A positive **Bias Score** ($Sim_{Neg} - Sim_{Pos}$) indicates a failure in semantic understanding.
+### 1. Intent Exploration (Vocabulary Projection)
 
-### 3. Query Ablation (Perturbation Analysis)
-By breaking down the query and projecting individual tokens, we can see which parts are driving the vector. If the vector for "Sophisticated dress" is almost identical to the vector for "dress" alone, the model is effectively ignoring the sensory modifier, likely because it hasn't seen enough diverse positives for it.
+We peek inside the model's head by projecting the summary vector ($h \in \mathbb{R}^{768}$) back into the vocabulary space using the original **Masked Language Modeling (MLM)** head.
 
-### 4. Feature Attribution (Gradient Analysis)
-Using gradients (e.g., Integrated Gradients), we can identify which input tokens have the most influence on the final embedding. In a biased model, gradients are heavily concentrated on exact matching words. In a semantic model, they are distributed across intent-bearing words.
+![Vocabulary Projection Chart](images/lexical-bias/vocabulary_projection.png)
+*Visualizing the Activation: Green bars represent semantic concepts, while blue indicate lexical subword echoes.*
 
-## Approaches to Mitigate Bias
+Each strategy revealed a different layer of the model's logic:
+*   **Global Intent**: View the final summarized meaning.
+*   **Decomposed (Ablation)**: Compare individual tokens vs. the full query to find **Noun Collapse**.
+*   **Sequential (Trajectory)**: Trace the vector's path as words are added.
+    - **Healthy Transition**: `Dress` → `White Dress` → `Elegant White Dress` (Vector moves in three distinct directions).
+    - **Blocked Transition**: Adding "Elegant" does not move the vector. The model is effectively "keyword blind".
 
-Several techniques have been proposed to address this issue:
+![Intent Trajectory Path](images/lexical-bias/intent_trajectory.png)
+*Intent Trajectory: Robust models show clear displacement for each new concept added to the query.*
 
-- **Generative Pseudo-Labeling (GPL)**:
-  [GPL](https://arxiv.org/abs/2112.05604) generates synthetic queries from documents within the domain using LLMs and uses them for training. This allows the model to learn "semantic connections" that may not exist in existing logs.
-- **Distillation from Cross-Encoders**:
-  By training a Bi-Encoder (vector search model) using the scores from a Cross-Encoder (which is less susceptible to keyword overlap bias) as the "teacher," the model can learn to evaluate items with high relevance even when there is no lexical overlap.
+### 2. Triplet & mapping (The "Conflict")
+Combines quantitative metrics with spatial visualization to expose how the model handles conflicting signals.
 
-## Conclusion
+![Local Intent Map](images/lexical-bias/intent_map.png)
+*Spatial Diagnostic: A biased model will place the Query point closer to the Cluster of Lexical Distractors than the Semantic Positives.*
 
-When introducing vector search, **"what data you train on"** is more important than the model architecture. To unlock the true potential of dense retrieval, especially for "fluffy" or sensory queries, you must proactively combat the bias inherent in traditional search logs using these deep diagnostic techniques.
+**Bias Score calculation**:
+$$ Score_{bias} = Sim(Query, Neg_{lexical}) - Sim(Query, Pos_{semantic}) $$
+*A positive score indicates a model that has "collapsed" into keyword matching.*
+
+---
+
+### 3. Feature Attribution (Gradient Importance)
+
+We identify which specific words "own" the vector by calculating the gradient of the final embedding norm with respect to each input embedding.
+
+#### Implementation Logic:
+1.  **Forward Pass**: Calculate query embedding magnitude.
+2.  **Backprop**: Compute $\frac{\partial ||f(x)||}{\partial x_i}$ for each token $x_i$.
+3.  **Heatmap**: A biased model will show 90%+ importance on the literal keywords, ignoring the context.
+
+---
+
+### 4. Space Health (Anisotropy Detection)
+
+We measure if the global embedding space is healthy or has collapsed into a "narrow cone."
+
+| Symptom | Indicator | Context |
+| :--- | :--- | :--- |
+| **Space Collapse** | Avg Cosine Sim > 0.8 | All vectors point in the same direction. |
+| **Hubness** | Low Uniformity | A few "popular" items appear in every search. |
+| **Semantic Drift** | High Anisotropy | The model can't tell "Apple" from "Banana" clearly. |
+
+---
+
+## 🎓 Theoretical Synthesis: Mitigation
+
+If diagnostics reveal high lexical bias, the solution is rarely "more of the same data." We must break the log-bias loop:
+
+-   **Generative Pseudo-Labeling (GPL)**: Generate queries for documents *not* in the logs to force the model to learn new semantic paths.
+-   **Cross-Encoder Distillation**: Transfer the complex reasoning of a Cross-Encoder (which "sees" both query and document at once) into the retrieval Bi-Encoder.
+-   **Hard Negative Mining**: Force the model to differentiate between "Sophisticated dress" and "Sophisticated toy" during training.
+
+## 🏛️ Conclusion
+
+A search engine that only matches keywords is a broken vector search engine. By using **Vocabulary Projection** and **Intent Mapping**, we ensure that our models are not just "Vector-based Keyword Search" but true engines of semantic understanding.

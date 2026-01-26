@@ -47,7 +47,7 @@ Assess the mathematical integrity of the embedding space. This layer diagnostic 
 
 These two metrics formally define what makes a "good" representation on a hypersphere. They are often in tension: the model must pull similar items together without collapsing the entire space.
 
-![Alignment and Uniformity Visualization](images/alignment_uniformity_visualization.png)
+![Alignment and Uniformity Visualization](images/embedding-evaluation-survey/alignment_uniformity_visualization.png)
 
 #### Theory
 *   **Alignment**: Measures the expected distance between embeddings of positive pairs. For a fixed set of "ground truth" related items (e.g., a product and its updated version, or a query and its purchase), they should map to nearly identical coordinates.
@@ -75,7 +75,7 @@ $$
 
 Anisotropy is the tendency of embeddings to occupy a narrow, directional cone rather than utilizing the full space.
 
-![Anisotropy Cone Effect](images/anisotropy_cone_effect.png)
+![Anisotropy Cone Effect](images/embedding-evaluation-survey/anisotropy_cone_effect.png)
 
 #### Theory
 High anisotropy leads to the **Hubness Problem**, where a few points (hubs) become the nearest neighbors to many unrelated queries. It also results in "artificial" high cosine similarity (e.g., every pair has >0.8 similarity), making the retrieval system overly sensitive to noise.
@@ -92,7 +92,7 @@ In a highly anisotropic space, generic terms like "Packaging" or "Official" migh
 ### 1.3. Intrinsic Dimension (Two-NN Estimator)
 This metric estimates the true dimensionality of the data manifold.
 
-![Intrinsic Dimension Manifold](images/intrinsic_dimension_manifold.png)
+![Intrinsic Dimension Manifold](images/embedding-evaluation-survey/intrinsic_dimension_manifold.png)
 
 #### Theory
 Even if your model outputs 768-dimensional vectors, the data often lives on a much lower-dimensional "manifold" (e.g., 20-30 dimensions). If the **Intrinsic Dimension (ID)** is too low, the model lacks the "degrees of freedom" to represent complex relationships.
@@ -177,7 +177,7 @@ The frontier of real-time search reliability. Framework based on **arXiv:2407.15
 
 ### 4.1. Unified Semantic Reliability Score ($R_q$)
 
-![Unified Semantic Reliability Score](images/semantic_reliability_composite.png)
+![Unified Semantic Reliability Score](images/embedding-evaluation-survey/semantic_reliability_composite.png)
 
 #### Theory
 A model's output is only useful if it is both **stable** (mathematically robust) and **coherent** (semantically logical). $R_q$ is the composite metric that balances these two dimensions. If $R_q$ is low, the search engine should consider fallback strategies (e.g., keyword search or a "did you mean" prompt).
@@ -188,7 +188,7 @@ $$ R_q = \frac{2 \cdot G_q \cdot I_q}{G_q + I_q} $$
 
 ### 4.2. Component 1: Geometric Stability ($G_q$)
 
-![Geometric Stability Visualization](images/geometric_stability_quantization.png)
+![Geometric Stability Visualization](images/embedding-evaluation-survey/geometric_stability_quantization.png)
 
 #### Theory
 $G_q$ measures how "brittle" an embedding is to mathematical transformations. In production, we often compress vectors (Quantization) or use different hardware. A stable embedding retains its semantic "meaning" (its angle in vector space) even when data is lost during compression.
@@ -209,7 +209,7 @@ If $G_q$ is small, the model "hallucinates" after compression. A search for a sp
 
 ### 4.3. Component 2: Information Density ($I_q$)
 
-![Neighborhood Coherence Visualization](images/neighborhood_coherence_density.png)
+![Neighborhood Coherence Visualization](images/embedding-evaluation-survey/neighborhood_coherence_density.png)
 
 #### Theory
 $I_q$ measures **Neighborhood Coherence**. It looks at the top-K retrieved items and asks: *"Are these items actually related to each other, or are they just random nearest neighbors in an empty region of the space?"*
