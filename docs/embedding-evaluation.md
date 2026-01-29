@@ -36,7 +36,7 @@ A single metric like nDCG is often a "black box"—it tells you *that* the model
 
 1.  **Intrinsic (The Engine)**: Measures **Domain Adaptation (MLM)** success. If the geometric distribution is collapsed, the model is fundamentally limited.
 2.  **Extrinsic (The Goal)**: Measures **Task Adaptation (CL)** success. Standard benchmarks for relevance.
-3.  **Behavioral (The Experience)**: Catches "semantic hallucination" (**Attribute Integrity** errors like brand or color mismatch) and measures **Semantic Gap**.
+3.  **Behavioral (The Experience)**: Catches "semantic hallucination" (**Attribute Integrity** errors like brand or color mismatch) and measures **Semantic Gap** (the distance between text matching and semantic reasoning).
 4.  **Safety (The Reliability)**: Provides a "Trust Score" for production monitoring.
 
 ## 🧱 Layer 1: Representational Geometry (Intrinsic)
@@ -170,7 +170,7 @@ $$ Gap = |Sim_{lexical} - Sim_{embedding}| $$
 
 #### Failure Modes
 
-A high gap indicates **Keyword Blindness** (ignoring exact matches) or **Semantic Hallucination**. **MLM** adaptation should ideally reduce the semantic gap for domain-specific terms by aligning them in the vector space.
+A high gap indicates **Keyword Blindness** (ignoring exact matches) or **Semantic Hallucination** (over-abstracting relevance). While a gap of zero implies a simple keyword matcher, a very high gap suggests the model is losing touch with the source text. **MLM** adaptation should ideally help align domain-specific terms, keeping the gap in a "healthy" diagnostic range.
 
 ## 🛡️ Layer 4: Semantic Certainty (Individual Query Quality)
 The frontier of real-time search reliability. Framework based on **arXiv:2407.15814**. This layer provides a "Trust Score" for every individual query, allowing systems to flag unreliable results before they reach the user.
