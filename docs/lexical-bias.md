@@ -1,5 +1,5 @@
 ---
-title: Lexical Bias in Dense Retrieval
+title: Lexical Bias
 summary: Diagnosing the "Keyword Matching" trap in vector search systems.
 ---
 
@@ -22,7 +22,7 @@ In e-commerce, we typically fine-tune models using **click logs** from existing 
 
 Lexical bias isn't always a defect—matching "Nike" for a "Nike" query is good. It becomes a **system failure** in these four regimes:
 
-1.  **The Zero-Hit Rescue**: When keyword search returns nothing, the vector search is the "last hope." If biased, it will also return nothing or irrelevant noise because it's looking for the same missing keywords.
+1.  **The Zero-Hit Rescue (Lexical vs. Semantic Gaps)**: Vector search is the "last hope" when keyword search returns zero hits. It is highly effective at resolving **lexical gaps**—such as typos, spelling variants, or morphological differences—where subword tokenization allows the model to bridge the gap. The danger occurs at **semantic gaps**, where intent matches but vocabulary is entirely different (e.g., "winter protection" vs "down jacket"). A biased model might fail here, remaining "keyword-locked" even when there's a strong semantic fit.
 2.  **Sensory & Abstract Intent**: Queries like "elegant dress" or "sturdy table" have no single keyword anchor. A biased model misses the "vibe" and only looks for the nouns.
 3.  **Compound Intent Conflict**: In a query like "Apple phone case", a biased model might over-index on "Apple" (the fruit) or "Phone", failing to treat the compound as a single semantic entity.
 4.  **Signal Noise (Metadata Overfitting)**: Models often over-react to frequent tokens like "[Free Shipping]" simply because they appear in many clicked items, regardless of their relevance to the true search intent.
@@ -50,7 +50,12 @@ Each strategy revealed a different layer of the model's logic:
 ![Intent Trajectory Path](images/lexical-bias/intent_trajectory.png)
 *Intent Trajectory: Robust models show clear displacement for each new concept added to the query.*
 
-### 2. Triplet & mapping (The "Conflict")
+### 2. Knowledge Probe (Entity Grounding)
+The ultimate test of domain adoption: does the model understand what a brand or character *is*?
+
+By selecting a high-entropy entity (e.g., "ちいかわ", "ノースフェイス"), we can verify if the model has formed a stable concept cluster. A model with high lexical bias will often treat these as random strings, whereas a healthy model will associate them with their semantic neighbors (e.g., "cute", "outdoor gear") even if those words are not in the document title.
+
+### 3. Triplet & mapping (The "Conflict")
 Combines quantitative metrics with spatial visualization to expose how the model handles conflicting signals.
 
 ![Local Intent Map](images/lexical-bias/intent_map.png)
@@ -62,7 +67,7 @@ $$ Score_{bias} = Sim(Query, Neg_{lexical}) - Sim(Query, Pos_{semantic}) $$
 
 ---
 
-### 3. Feature Attribution (Gradient Importance)
+### 4. Feature Attribution (Gradient Importance)
 
 We identify which specific words "own" the vector by calculating the gradient of the final embedding norm with respect to each input embedding.
 
@@ -73,7 +78,7 @@ We identify which specific words "own" the vector by calculating the gradient of
 
 ---
 
-### 4. Space Health (Anisotropy Detection)
+### 5. Space Health (Anisotropy Detection)
 
 We measure if the global embedding space is healthy or has collapsed into a "narrow cone."
 
@@ -95,4 +100,4 @@ If diagnostics reveal high lexical bias, the solution is rarely "more of the sam
 
 ## 🏛️ Conclusion
 
-A search engine that only matches keywords is a broken vector search engine. By using **Vocabulary Projection** and **Intent Mapping**, we ensure that our models are not just "Vector-based Keyword Search" but true engines of semantic understanding.
+A search engine that only matches keywords is a broken vector search engine. By using **Vocabulary Projection**, **Knowledge Probing**, and **Intent Mapping**, we ensure that our models are not just "Vector-based Keyword Search" but true engines of semantic understanding.

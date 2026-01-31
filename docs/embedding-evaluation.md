@@ -107,6 +107,66 @@ $$
 *   **High ID**: The model can distinguish between "iPhone 13 Red 128GB" and "iPhone 13 Blue 128GB" because it has enough dimensions to represent Color, Model, and Capacity independently.
 *   **Low ID (Collapse)**: The model treats all "iPhones" as a single point. It can tell an iPhone from a Toaster, but it cannot differentiate between specific variants because the manifold has collapsed.
 
+### 1.4. Word Order Sensitivity
+This metric quanitifies the model's awareness of syntactic structure and compositional meaning.
+
+#### Theory
+A bag-of-words model treats "Apple iPhone case" and "Case iPhone Apple" as identical. A truly contextual model should show a measurable distance between their embeddings, reflecting the shift in primary intent (the product is a "case", not an "iPhone").
+
+#### Implementation Logic
+To calculate $S_{order}$ for a query $q$:
+1.  **Original Vector**: $v_{orig} = f(q)$.
+2.  **Permutations**: Generate $N$ random permutations of the words in $q$ (e.g., $N=20$).
+3.  **Permuted Vectors**: $v_{perm, i} = f(q_{perm, i})$ for $i=1..N$.
+4.  **Sensitivity**: $S_{order} = \text{mean}(1 - \cos(v_{orig}, v_{perm, i}))$.
+
+```python
+def calculate_word_order_sensitivity(model, queries, n_permutations=10):
+    scores = []
+    for query in queries:
+        tokens = query.split()
+        if len(tokens) < 2: continue
+        
+        orig_vec = model.encode(query)
+        perm_vecs = []
+        for _ in range(n_permutations):
+            shuffled = random.sample(tokens, len(tokens))
+            perm_vecs.append(model.encode(" ".join(shuffled)))
+        
+        # Calculate mean cosine distance
+        sims = [cosine_similarity(orig_vec, p) for p in perm_vecs]
+        scores.append(1.0 - np.mean(sims))
+    return np.mean(scores)
+```
+
+#### E-commerce Example
+*   **High Sensitivity (Good)**: A search for **"赤のナイキシューズ"** (Red Nike shoes) stays far from **"シューズのナイキ赤"** (Shoes' Nike red). The model understands "Red" modifies "shoes".
+*   **Zero Sensitivity (Bad)**: Both queries return the exact same vector. The model will likely retrieve "Red socks" accidentally because it just counts keyword presence.
+
+### 1.5. Retrieval Diversity (Hubness)
+Hubness occurs when a small number of products (hubs) appear as nearest neighbors to an unusually large number of queries. This is the real-world manifestation of **Low Uniformity**.
+
+#### Metrics & Implementation
+We calculate these by analyzing the frequency distribution of product IDs in the Top-K results across a large set of queries ($|Q| \approx 1000+$).
+
+1.  **Skewness ($S_k$)**: Measures the asymmetry of the retrieval frequency distribution.
+    ```python
+    from scipy.stats import skew
+    def calculate_hubness_skew(retrieval_counts):
+        # retrieval_counts: list of counts for each unique product ID retrieved
+        # [50, 12, 1, 1, ... 0]
+        return skew(retrieval_counts)
+    ```
+2.  **Gini Coefficient**: Measures the overall inequality of product exposure.
+    $$
+    G = \frac{\sum_{i=1}^n \sum_{j=1}^n |c_i - c_j|}{2n \sum_{i=1}^n c_i}
+    $$
+    *Where $c_i$ is the number of times product $i$ was retrieved in the Top-K. Lower is better.*
+
+#### E-commerce Example
+*   **The "Popularity Trap"**: In a biased model, a generic "Best Seller" item like a **"USB Cable"** might appear in the results for "Mechanical Keyboard" or "Webcam" simply because it is a "hub" in the vector space.
+*   **High Hubness Indicator**: If your Skewness $> 10$, you typically have "vampire products" that are sucking traffic away from more relevant, niche listings.
+
 ## 🎯 Layer 2: Domain-Specific Retrieval Performance (Extrinsic)
 Assess the utility of embeddings in our specific ranking task.
 
@@ -145,8 +205,33 @@ $$ J(A, B) = \frac{A \cap B}{A \cup B} $$
 ## 🧠 Layer 3: Behavioral & Semantic Diagnostics
 Analyze *why* a model fails on specific domains or archetypes.
 
-### 3.1. Attribute Integrity Benchmarking
-**The "Business Logic" layer.**
+### 3.1. Knowledge Probe (Entity Grounding)
+Directly tests if the model "knows" specific entities, brands, or cultural concepts.
+
+#### Method & Implementation
+We select a set of high-entropy entities (e.g., characters like **"ちいかわ"**, specialized brands, or technical feature codes) and analyze:
+
+1.  **Semantic Halo**: Projecting the entity into the vocabulary space.
+    ```python
+    def get_semantic_halo(model, entity_name, top_k=10):
+        entity_emb = model.encode(entity_name)
+        # Project onto the entire vocabulary latent space
+        # Using the original MLM head of the model (BERT/DistilBERT)
+        scores = mlm_head(entity_emb) 
+        return get_top_tokens(scores, k=top_k)
+    ```
+2.  **Entity Coherence ($I_q$)**: Measuring the density of the immediate neighborhood. 
+    *   **Formula**: Average pairwise similarity of the Top-10 neighbors.
+    *   **Logic**: A stable representation should have $I_q > 0.7$. A "hallucinating" representation will have random neighbors with low similarity ($I_q < 0.3$).
+3.  **Local Neighborhood Map**: A graph visualization where nodes are retrieved products and edges represent similarity. A dense, "hairball" structure indicates a strong, grounded concept.
+
+#### E-commerce Example
+*   **Target Entity**: "ちいかわ" (Chiikawa - Japanese character)
+*   **Halo Result (Healthy)**: Activation on tokens like `cute`, `character`, `manga`, `white`.
+*   **Halo Result (Biased)**: Activation on random subwords like `ii`, `ka`, `wa` or unrelated nouns like `shirt`. This identifies **Lexical Drift**.
+
+### 3.2. Attribute Integrity Benchmarking
+**The "Business Logic" layer.** We define two levels of failure:
 
 Standard nDCG treats all retrieved items as equally "unlabeled" if they aren't in the qrels. However, in e-commerce, some retrievals are objectively wrong based on hard constraints (e.g., retrieving a *Red* phone for a *Blue* query).
 
@@ -157,20 +242,34 @@ We define two levels of failure:
 #### Dimensional Integrity Metrics
 We decompose EFR into three primary dimensions:
 
-1.  **Color Integrity**: Maps keywords and their Japanese/English synonyms (e.g., `赤`, `レッド`, `red`) into a unified color bucket. A mismatch is triggered if the query contains a color specified *not* found in the product metadata or title.
-2.  **Bilingual Brand Integrity**: Handles compound brand names (e.g., `エーワン(a-one)`). The system canonicalizes either `エーワン` or `a-one` in the query to the same entity, preventing false-positive mismatches due to language variations.
-3.  **Dimension Integrity**: Detects physical measurements (e.g., `128GB`, `500ml`). It uses a value-unit aware regex to ensure that a search for `500ml` doesn't retrieve a `1L` bottle, even if they are semantically similar "containers".
+1.  **Color Integrity**: Maps keywords and their Japanese/English synonyms (e.g., `赤`, `レッド`, `red`) into a unified color bucket.
+    *   **Implementation**: Use a regex-based `AttributeExtractor`. If the query contains "Red" but the product metadata contains "Blue", increment the `ColorMismatch` counter.
+2.  **Bilingual Brand Integrity**: Handles compound brand names (e.g., `エーワン(a-one)`). 
+    *   **Logic**: Tokenizers often fail here by splitting the brand. We use a canonicalization dictionary to map both `エーワン` and `a-one` to ID `1042`. A mismatch is logged if Query_Brand_ID != Product_Brand_ID.
+3.  **Dimension Integrity**: Detects physical measurements (e.g., `128GB`, `500ml`).
+    *   **Logic**: Uses a magnitude-aware comparator. A search for `500ml` shouldn't retrieve a `1L` bottle, even if they share the `ml` token.
+
+#### E-commerce Impact
+Mismatch rate is the most readable metric for non-technical stakeholders. An **Explicit Failure Rate of 15%** means that 1.5 out of 10 items in your Top-10 are objectively wrong colors/sizes/brands, directly damaging user trust.
 
 ---
 
-### 3.2. ESCI Implementation & Semantic Gap
-#### Formula
+### 3.3. ESCI Implementation & Semantic Gap
+A model that only matches keywords is a broken vector search engine. We measure the **Semantic Gap** to check for hidden keyword bias.
 
+#### Implementation Logic
 $$ Gap = |Sim_{lexical} - Sim_{embedding}| $$
+1.  **Lexical Similarity**: Character-level 2-gram Jaccard overlap between Query and Product Title.
+2.  **Embedding Similarity**: Cosine distance in the vector space.
+3.  **Diagnostic**:
+    *   **Gap $\approx 0$**: The model is a "Vectorized Grep". It has failed to learn abstract meaning.
+    *   **High Gap**: The model is "Semantic Hallucinating"—retrieving based on vibes but ignoring literal user constraints.
 
-#### Failure Modes
-
-A high gap indicates **Keyword Blindness** (ignoring exact matches) or **Semantic Hallucination** (over-abstracting relevance). While a gap of zero implies a simple keyword matcher, a very high gap suggests the model is losing touch with the source text. **MLM** adaptation should ideally help align domain-specific terms, keeping the gap in a "healthy" diagnostic range.
+#### E-commerce Example
+*   **Query**: "Summer dress"
+*   **Result A**: Title contains "Summer dress". Lexical=1.0, Embedding=0.95. **Gap=0.05**.
+*   **Result B**: Title contains "Breathable floral outfit". Lexical=0.05, Embedding=0.91. **Gap=0.86**.
+*   **Optimization**: A healthy model should preserve high embedding similarity for both, while managing a reasonable gap for abstract matches (Result B).
 
 ## 🛡️ Layer 4: Semantic Certainty (Individual Query Quality)
 The frontier of real-time search reliability. Framework based on **arXiv:2407.15814**. This layer provides a "Trust Score" for every individual query, allowing systems to flag unreliable results before they reach the user.
@@ -238,5 +337,5 @@ def neighborhood_coherence(top_k_embeddings):
 | :--- | :--- | :--- | :--- |
 | **1** | **Geometry** | **MLM** | Alignment, Anisotropy, ID |
 | **2** | **Ranking** | **CL** | nDCG@10, Recall@K, JMTEB |
-| **3** | **Behavioral**| **MLM + CL** | Attribute Integrity, Semantic Gap |
+| **3** | **Behavioral**| **MLM + CL** | Attribute Integrity, Knowledge Probe, Semantic Gap |
 | **4** | **Reliability**| **Score Calibration** | $R_q$ (Trust), $G_q$ (Stability), $I_q$ (Density) |
