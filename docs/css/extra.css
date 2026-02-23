@@ -1,0 +1,4 @@
+/* Hide the "Copy Page" button in the header */
+button[onclick*="navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob })])"] {
+    display: none !important;
+}

@@ -14,6 +14,9 @@ theme:
   show_datetime: false
   topbar_sections: true
 
+extra_css:
+  - css/extra.css
+
 plugins:
   - search
 
