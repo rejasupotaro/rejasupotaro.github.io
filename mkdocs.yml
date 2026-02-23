@@ -43,5 +43,5 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Lexical Bias: lexical-bias.md
+  - Pitfalls in Dense Retrieval: lexical-bias.md
   - Embedding Evaluation: embedding-evaluation.md
